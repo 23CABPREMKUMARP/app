@@ -45,7 +45,7 @@ function Bus({ start, end, isAnimating, onComplete }: {
             const bus = busRef.current;
             const data = { t: 0 };
 
-            gsap.to(data, {
+            const tween = gsap.to(data, {
                 t: 1,
                 duration: 2.5,
                 ease: "power2.inOut",
@@ -59,6 +59,10 @@ function Bus({ start, end, isAnimating, onComplete }: {
                 },
                 onComplete: onComplete
             });
+
+            return () => {
+                tween.kill();
+            };
         }
     }, [isAnimating, curve, onComplete]);
 

@@ -27,28 +27,29 @@ export default function BusBookingPage() {
     const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
     const [totalAmount, setTotalAmount] = useState(0);
 
-    const handleSearch = (from: Location, to: Location) => {
+    const handleSearch = React.useCallback((from: Location, to: Location) => {
         setIsSearching(true);
         setShowResults(false);
+        setIsPlayingVideo(false);
         setBookingStep("search");
         setSelection({ from, to });
         setSearchId(prev => prev + 1);
-    };
+    }, []);
 
-    const handleAnimationComplete = () => {
+    const handleAnimationComplete = React.useCallback(() => {
         setIsSearching(false);
         // Play cinematic video after globe arrival
         setIsPlayingVideo(true);
-    };
+    }, []);
 
-    const handleVideoEnd = () => {
+    const handleVideoEnd = React.useCallback(() => {
         setIsPlayingVideo(false);
         setShowResults(true);
         setTimeout(() => {
             const resultsSection = document.getElementById('results-section');
             resultsSection?.scrollIntoView({ behavior: "smooth" });
         }, 100);
-    };
+    }, []);
 
     // Fail-safe: Automatically dismiss video after 6 seconds if it hangs
     React.useEffect(() => {
@@ -77,7 +78,7 @@ export default function BusBookingPage() {
             window.removeEventListener('touchstart', forceEnd);
             window.removeEventListener('keydown', forceEnd);
         };
-    }, [isPlayingVideo]);
+    }, [isPlayingVideo, handleVideoEnd]);
 
     const handleSelectBus = (bus: any) => {
         setSelectedBus(bus);
