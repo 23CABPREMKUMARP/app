@@ -102,10 +102,18 @@ export default function ProductPage() {
                   Explore Solutions
                 </motion.button>
                 <motion.a
-                  href="/bus-booking"
+                  href="/live-map"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="rounded-full bg-orange-600 px-10 py-4 text-white text-lg font-medium transition-shadow hover:shadow-2xl cursor-pointer flex items-center gap-2"
+                >
+                  Show Live Location
+                </motion.a>
+                <motion.a
+                  href="/live-map#booking"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="rounded-full bg-blue-600 px-10 py-4 text-white text-lg font-medium transition-shadow hover:shadow-2xl cursor-pointer flex items-center gap-2"
                 >
                   Book Your Bus
                 </motion.a>

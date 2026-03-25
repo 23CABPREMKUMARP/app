@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Next.js Edge & WebGL Compiler Optimizations
+  productionBrowserSourceMaps: false, // Massively cuts production bundle size on edge network
+  compress: true,                     // Enforces Brotli/Gzip compression for massive 3D .glb assets
+  poweredByHeader: false,
+  reactStrictMode: false,             // Prevents WebGL matrix context crashing during double-hydration mounts
+
   images: {
     remotePatterns: [
       {
