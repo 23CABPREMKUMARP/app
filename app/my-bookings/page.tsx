@@ -38,7 +38,7 @@ export default function MyBookingsPage() {
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-[10px] font-black uppercase tracking-widest">Return to Map</span>
         </Link>
-        <Image src="/logo2.png" alt="Logo" width={180} height={70} className="object-contain" />
+        <Image src="/logo2.png" alt="Logo" width={180} height={70} className="object-contain" priority />
         <Link href="/admin" className="p-4 bg-zinc-50 rounded-2xl hover:bg-zinc-100 transition-all text-zinc-400">
            <ShieldCheck size={20} />
         </Link>

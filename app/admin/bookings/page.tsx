@@ -24,7 +24,7 @@ export default function AdminBookingsPage() {
     <main className="min-h-screen bg-zinc-50 font-sans flex text-zinc-900">
       <aside className="w-80 bg-white border-r border-zinc-200 flex flex-col p-8 fixed h-full z-50">
         <div className="mb-12">
-           <Image src="/logo2.png" alt="Logo" width={200} height={80} className="object-contain" />
+           <Image src="/logo2.png" alt="Logo" width={200} height={80} className="object-contain" priority />
         </div>
         <nav className="flex-1 space-y-2">
            {sidebarLinks.map((link, i) => (

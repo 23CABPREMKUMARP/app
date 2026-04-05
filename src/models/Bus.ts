@@ -11,6 +11,7 @@ const BusSchema = new mongoose.Schema({
   availableSeats: { type: Number, required: true },
   departureTime: { type: String, required: true },
   arrivalTime: { type: String, required: true },
+  qrCodeUrl: { type: String }, // For bus identifier QR
   lastUpdate: { type: Date, default: Date.now },
 });
 

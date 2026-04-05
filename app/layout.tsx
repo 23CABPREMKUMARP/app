@@ -8,8 +8,20 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "JeffBen",
-  description: "JeffBen Systems - Pioneering Intelligence in Metropolitan Public Transit Ecosystems",
+  title: "JeffBen Systems | Metropolitan Transit Intelligence",
+  description: "Pioneering industrial-grade automation and real-time telemetry for metropolitan public transit ecosystems across Tamil Nadu.",
+  keywords: ["Transit Intelligence", "Public Transport Automation", "Jeffben Systems", "Bus Tracking", "Urban Mobility Solutions", "Tamil Nadu Transit"],
+  metadataBase: new URL('https://jeffben.org'),
+  openGraph: {
+    title: "JeffBen Systems - Future of Automated Mobility",
+    description: "Official platform for advanced transit telemetry and smart city infrastructure integration.",
+    images: ['/hero-logo.png'],
+    type: 'website',
+  },
+  icons: {
+    icon: '/logo2.png',
+    apple: '/logo2.png',
+  }
 };
 
 export default function RootLayout({

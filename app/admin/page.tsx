@@ -22,11 +22,17 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <main className="min-h-screen bg-zinc-50 font-sans flex text-zinc-900">
+    <main className="min-h-screen bg-zinc-50 font-sans flex flex-col lg:flex-row text-zinc-900">
+      {/* Mobile Header */}
+      <header className="lg:hidden bg-white border-b border-zinc-200 p-4 flex items-center justify-between sticky top-0 z-[60]">
+         <Image src="/logo2.png" alt="Logo" width={100} height={40} className="object-contain" priority />
+         <Link href="/" className="p-2 bg-zinc-50 rounded-xl"><Shield size={18} /></Link>
+      </header>
+
       {/* Sidebar */}
-      <aside className="w-80 bg-white border-r border-zinc-200 flex flex-col p-8 fixed h-full z-50">
+      <aside className="hidden lg:flex w-80 bg-white border-r border-zinc-200 flex-col p-8 fixed h-full z-50">
         <div className="mb-12">
-           <Image src="/logo2.png" alt="Logo" width={200} height={80} className="object-contain" />
+           <Image src="/logo2.png" alt="Logo" width={200} height={80} className="object-contain" priority />
            <div className="mt-4 flex items-center gap-2 px-3 py-1 bg-black text-white rounded-full w-fit">
               <Shield size={14} />
               <span className="text-[10px] font-black uppercase tracking-widest">Admin Matrix</span>
@@ -63,13 +69,13 @@ export default function AdminDashboard() {
       </aside>
 
       {/* Main Content */}
-      <section className="flex-1 ml-80 p-12">
-        <header className="flex items-center justify-between mb-12">
+      <section className="flex-1 lg:ml-80 p-6 md:p-12">
+        <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 md:mb-12 gap-6">
            <div>
-             <h2 className="text-4xl font-black text-zinc-900 tracking-tight">System Overview</h2>
+             <h2 className="text-3xl md:text-4xl font-black text-zinc-900 tracking-tight">System Overview</h2>
              <p className="text-zinc-400 font-bold uppercase tracking-[0.2em] text-[10px] mt-2 leading-none">Real-time enterprise intelligence</p>
            </div>
-           <div className="flex items-center gap-6">
+           <div className="flex items-center gap-4 md:gap-6 bg-white shrink-0 p-3 md:p-0 rounded-2xl md:bg-transparent border border-zinc-100 md:border-0">
               <div className="text-right">
                  <p className="text-sm font-bold text-zinc-900">Prem Kumar</p>
                  <p className="text-xs font-bold text-zinc-400">Fleet Operations Chief</p>
@@ -81,7 +87,7 @@ export default function AdminDashboard() {
         </header>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-12">
            {stats.map((stat, i) => (
              <motion.div 
                key={i}
@@ -102,8 +108,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Activity Mockup */}
-        <div className="grid grid-cols-3 gap-8">
-           <div className="col-span-2 bg-white rounded-[40px] border border-zinc-50 shadow-sm p-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+           <div className="lg:col-span-2 bg-white rounded-[32px] md:rounded-[40px] border border-zinc-50 shadow-sm p-6 md:p-10">
               <div className="flex items-center justify-between mb-8">
                  <h3 className="text-xl font-bold">Fleet Dispersion Matrix</h3>
                  <button className="text-xs font-black text-orange-600 uppercase tracking-widest hover:underline">Full Real-time Report &rarr;</button>
@@ -117,7 +123,7 @@ export default function AdminDashboard() {
               </div>
            </div>
 
-           <div className="bg-white rounded-[40px] border border-zinc-50 shadow-sm p-10">
+           <div className="bg-white rounded-[32px] md:rounded-[40px] border border-zinc-50 shadow-sm p-6 md:p-10">
               <h3 className="text-xl font-bold mb-8">Terminal Activity</h3>
               <div className="space-y-8">
                  {[

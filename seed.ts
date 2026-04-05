@@ -22,78 +22,150 @@ async function seed() {
 
   // Create Stops
   const stops = await Stop.create([
-    { stopName: "Guindy", lat: 13.0067, lng: 80.2206 },
-    { stopName: "T Nagar", lat: 13.0405, lng: 80.2337 },
-    { stopName: "Mylapore", lat: 13.0333, lng: 80.2685 },
-    { stopName: "Adyar", lat: 13.0012, lng: 80.2565 },
-    { stopName: "Velachery", lat: 12.9791, lng: 80.2198 },
-    { stopName: "OMR", lat: 12.8711, lng: 80.2263 },
-    { stopName: "Tambaram", lat: 12.9231, lng: 80.1264 },
+    { stopName: "Gandhipuram", lat: 10.9996, lng: 76.9702 },
+    { stopName: "Thudiyalur", lat: 11.0500, lng: 76.9600 },
+    { stopName: "Mettupalayam", lat: 11.3000, lng: 76.9366 },
+    { stopName: "Ukkadam", lat: 10.9940, lng: 76.9548 },
+    { stopName: "Kinathukadavu", lat: 10.8500, lng: 76.9800 },
+    { stopName: "Pollachi", lat: 10.6620, lng: 77.0060 },
+    { stopName: "Coimbatore Junction", lat: 11.0168, lng: 76.9558 },
+    { stopName: "SITRA", lat: 11.0300, lng: 77.0400 },
+    { stopName: "Avinashi", lat: 11.1930, lng: 77.2680 },
+    { stopName: "Singanallur", lat: 11.0000, lng: 77.0300 },
+    { stopName: "Sulur", lat: 11.0200, lng: 77.1200 },
+    { stopName: "Palladam", lat: 11.0000, lng: 77.2880 },
+    { stopName: "Saravanampatti", lat: 11.0700, lng: 77.0000 },
+    { stopName: "Kovilpalayam", lat: 11.1500, lng: 77.0500 },
+    { stopName: "Annur", lat: 11.2330, lng: 77.1000 },
   ]);
 
   // Create Routes
-  const route1 = await Route.create({
-    routeName: "Anna Salai Line",
-    from: "Guindy",
-    to: "T Nagar",
+  const r1 = await Route.create({
+    routeName: "Coimbatore → Mettupalayam",
+    from: "Gandhipuram",
+    to: "Mettupalayam",
     path: [
-      { lat: 13.0067, lng: 80.2206 },
-      { lat: 13.015, lng: 80.225 },
-      { lat: 13.0405, lng: 80.2337 },
+      { lat: 10.9996, lng: 76.9702 },
+      { lat: 11.0500, lng: 76.9600 },
+      { lat: 11.1500, lng: 76.9500 },
+      { lat: 11.2500, lng: 76.9400 },
+      { lat: 11.3000, lng: 76.9366 },
     ],
-    stops: [stops[0]._id, stops[1]._id],
+    stops: [stops[0]._id, stops[1]._id, stops[2]._id],
   });
 
-  const route2 = await Route.create({
-    routeName: "ECR Express",
-    from: "Mylapore",
-    to: "OMR",
+  const r2 = await Route.create({
+    routeName: "Coimbatore → Pollachi",
+    from: "Ukkadam",
+    to: "Pollachi",
     path: [
-      { lat: 13.0333, lng: 80.2685 },
-      { lat: 13.0012, lng: 80.2565 },
-      { lat: 12.92, lng: 80.24 },
-      { lat: 12.8711, lng: 80.2263 },
+      { lat: 10.9940, lng: 76.9548 },
+      { lat: 10.8500, lng: 76.9800 },
+      { lat: 10.6620, lng: 77.0060 },
     ],
-    stops: [stops[2]._id, stops[3]._id, stops[5]._id],
+    stops: [stops[3]._id, stops[4]._id, stops[5]._id],
+  });
+
+  const r3 = await Route.create({
+    routeName: "Coimbatore → Avinashi",
+    from: "Coimbatore",
+    to: "Avinashi",
+    path: [
+      { lat: 11.0168, lng: 76.9558 },
+      { lat: 11.0300, lng: 77.0400 },
+      { lat: 11.1000, lng: 77.1500 },
+      { lat: 11.1930, lng: 77.2680 },
+    ],
+    stops: [stops[6]._id, stops[7]._id, stops[8]._id],
+  });
+
+  const r4 = await Route.create({
+    routeName: "Coimbatore → Palladam",
+    from: "Coimbatore",
+    to: "Palladam",
+    path: [
+      { lat: 11.0168, lng: 76.9558 },
+      { lat: 11.0000, lng: 77.0300 },
+      { lat: 11.0200, lng: 77.1200 },
+      { lat: 11.0000, lng: 77.2880 },
+    ],
+    stops: [stops[6]._id, stops[9]._id, stops[10]._id, stops[11]._id],
+  });
+
+  const r5 = await Route.create({
+    routeName: "Coimbatore → Annur",
+    from: "Coimbatore",
+    to: "Annur",
+    path: [
+      { lat: 11.0168, lng: 76.9558 },
+      { lat: 11.0700, lng: 77.0000 },
+      { lat: 11.1500, lng: 77.0500 },
+      { lat: 11.2330, lng: 77.1000 },
+    ],
+    stops: [stops[6]._id, stops[12]._id, stops[13]._id, stops[14]._id],
   });
 
   // Create Buses
   const buses = await Bus.create([
     {
-      busNumber: "TN-01-AB-1234",
+      busNumber: "TN-38-EF-2025",
       driverName: "Senthil Kumar",
-      routeId: route1._id,
+      routeId: r1._id,
       status: "Running",
       speed: 45,
       fare: 25,
       totalSeats: 40,
-      availableSeats: 25,
+      availableSeats: 35,
       departureTime: "08:00 AM",
       arrivalTime: "09:30 AM",
     },
     {
-      busNumber: "TN-01-XY-5678",
+      busNumber: "TN-38-XY-9999",
       driverName: "Rajesh",
-      routeId: route2._id,
-      status: "Running",
-      speed: 60,
-      fare: 50,
+      routeId: r2._id,
+      status: "Boarding",
+      speed: 0,
+      fare: 40,
       totalSeats: 40,
-      availableSeats: 15,
+      availableSeats: 22,
       departureTime: "09:30 AM",
       arrivalTime: "11:30 AM",
     },
     {
-        busNumber: "TN-01-CD-9012",
-        driverName: "Mani",
-        routeId: route2._id,
-        status: "Stopped",
-        speed: 0,
-        fare: 45,
-        totalSeats: 40,
-        availableSeats: 35,
-        departureTime: "10:30 AM",
-        arrivalTime: "12:30 PM",
+      busNumber: "TN-38-AM-1111",
+      driverName: "Mani",
+      routeId: r3._id,
+      status: "Running",
+      speed: 55,
+      fare: 35,
+      totalSeats: 40,
+      availableSeats: 18,
+      departureTime: "07:30 AM",
+      arrivalTime: "09:00 AM",
+    },
+    {
+      busNumber: "TN-38-PL-4444",
+      driverName: "Karthik",
+      routeId: r4._id,
+      status: "Running",
+      speed: 48,
+      fare: 30,
+      totalSeats: 40,
+      availableSeats: 40,
+      departureTime: "10:00 AM",
+      arrivalTime: "11:30 AM",
+    },
+    {
+      busNumber: "TN-38-AR-5555",
+      driverName: "Velu",
+      routeId: r5._id,
+      status: "Boarding",
+      speed: 0,
+      fare: 28,
+      totalSeats: 40,
+      availableSeats: 30,
+      departureTime: "11:00 AM",
+      arrivalTime: "12:30 PM",
     }
   ]);
 
@@ -101,27 +173,16 @@ async function seed() {
   for (const bus of buses) {
     const seatsList = [];
     for (let i = 1; i <= 40; i++) {
-      seatsList.push({
+        seatsList.push({
             busId: bus._id,
             seatNumber: i.toString(),
-            isBooked: Math.random() < 0.3
+            isBooked: Math.random() < 0.2
         });
     }
     await Seat.insertMany(seatsList);
-    
-    // Update available count based on what we actually created
-    const booked = seatsList.filter(s => s.isBooked).length;
-    await Bus.findByIdAndUpdate(bus._id, { availableSeats: 40 - booked });
   }
 
-  // Create Locations
-  await BusLocation.create([
-    { busId: buses[0]._id, lat: 13.011, lng: 80.222 },
-    { busId: buses[1]._id, lat: 13.02, lng: 80.26 },
-    { busId: buses[2]._id, lat: 13.0333, lng: 80.2685 },
-  ]);
-
-  console.log('Seed completed successfully');
+  console.log('Seed completed successfully for Coimbatore region');
   await mongoose.disconnect();
 }
 
