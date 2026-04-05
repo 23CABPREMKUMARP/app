@@ -12,20 +12,37 @@ interface QRScannerProps {
 
 const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isStartingRef = useRef(false);
 
   useEffect(() => {
     let html5QrCode: Html5Qrcode | null = null;
-    let isInitialized = false;
+    mountedRef.current = true;
 
     const startScanner = async () => {
-      if (isInitialized) return;
+      if (!mountedRef.current || isStartingRef.current) return;
+      
+      // Comprehensive cleanup before new attempt
+      if (scannerRef.current) {
+        try {
+          if (scannerRef.current.isScanning) {
+            await scannerRef.current.stop();
+          }
+          scannerRef.current.clear();
+        } catch (e) {
+          // Internal library cleanups sometimes error if DOM is shifting
+        }
+        scannerRef.current = null;
+      }
+
+      isStartingRef.current = true;
+      setError(null); // Clear previous errors for fresh attempt
       
       try {
-        html5QrCode = new Html5Qrcode("reader");
-        scannerRef.current = html5QrCode;
+        const scanner = new Html5Qrcode("reader");
+        scannerRef.current = scanner;
 
-        // Balanced optimization: 15 FPS + 1sec delay prevents mobile camera crashes and overheating
         const config = { 
           fps: 15, 
           qrbox: { width: 250, height: 250 }, 
@@ -33,46 +50,65 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
           disableFlip: false 
         };
 
-        await html5QrCode.start(
+        await scanner.start(
           { facingMode: "environment" },
           config,
           (decodedText) => {
-            if (isInitialized) {
-               isInitialized = false;
+            if (mountedRef.current) {
                onScan(decodedText);
-               if (html5QrCode?.isScanning) {
-                 html5QrCode.stop().catch(() => {});
+               // Graceful stop after successful scan
+               if (scanner.isScanning) {
+                 scanner.stop().catch(() => {});
                }
             }
           },
           () => {} 
         );
-        isInitialized = true;
       } catch (err: any) {
+        if (!mountedRef.current) return;
+
         if (err?.name === "NotAllowedError" || err?.toString().includes("Permission denied")) {
           setError("CAMERA PERMISSION DENIED: Please enable camera access in your browser settings.");
         } else {
-          setError("HARDWARE ERROR: Camera stream failed to stabilize. Restarting engine...");
-          // Cleanly try one re-initialization after 2s if it's a hardware crash
-          setTimeout(() => { if (!isInitialized) startScanner(); }, 2000);
+          // Prevent rapid blinking by ignoring play-pause interrupts and AbortError from quick unmounts
+          const errMsg = err?.toString() || "";
+          if (
+            !errMsg.includes("interrupted by a call to pause") && 
+            !errMsg.includes("removed from the document") && 
+            err?.name !== "AbortError"
+          ) {
+            setError("HARDWARE ERROR: Camera failed to initialize. Retrying in 5s...");
+            setTimeout(() => { if (mountedRef.current) startScanner(); }, 5000);
+          }
         }
-        console.error("Camera error:", err);
+        // Only log serious camera initialization failures
+        if (err?.name !== "AbortError" && !(err?.toString() || "").includes("removed from the document")) {
+           console.error("Camera error:", err);
+        }
+      } finally {
+        isStartingRef.current = false;
       }
     };
 
     startScanner();
 
     return () => {
-      isInitialized = false;
+      mountedRef.current = false;
+      const html5QrCode = scannerRef.current;
       if (html5QrCode) {
-        const cleanup = async () => {
+        const shutdown = async () => {
           try {
             if (html5QrCode?.isScanning) {
               await html5QrCode.stop();
+              html5QrCode.clear();
             }
-          } catch (e) {}
+          } catch (e) {
+            // Ignore library-level cleanup race conditions
+          } finally {
+            scannerRef.current = null;
+          }
         };
-        cleanup();
+        shutdown();
       }
     };
   }, [onScan]);
@@ -109,13 +145,13 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
         <div className="p-6 sm:p-10 space-y-6 overflow-y-auto no-scrollbar">
           <div className="text-center space-y-1.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-[8px] font-black uppercase tracking-[0.2em]">
-               Neural Scan
+               JeffBen
             </div>
             <h3 className="text-2xl font-black text-white tracking-tighter italic uppercase">FLEET SCAN</h3>
           </div>
 
           <div className="relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/5 shadow-2xl ring-1 ring-white/10">
-            <div id="reader" className="w-full h-full" />
+            <div id="reader" className="w-full h-full relative" />
             
             {/* Visual Scanner Frame - Stable Static Frame for Jeffben Branding */}
             <div className="absolute inset-0 pointer-events-none">
@@ -161,7 +197,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
           100% { top: 15%; }
         }
         #reader__dashboard { display: none !important; }
-        #reader { background: black !important; }
+        #reader { background: black !important; position: relative !important; }
         #reader video { 
           object-fit: cover !important; 
           width: 100% !important; 

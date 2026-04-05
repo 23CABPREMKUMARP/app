@@ -16,7 +16,8 @@ console.warn = (...args) => {
 };
 
 console.error = (...args) => {
-  if (typeof args[0] === 'string' && args[0].includes('Context Lost')) return;
+  const msg = args[0]?.toString() || "";
+  if (msg.includes('Context Lost') || msg.includes('play() request was interrupted') || msg.includes('removed from the document')) return;
   originalError(...args);
 };
 

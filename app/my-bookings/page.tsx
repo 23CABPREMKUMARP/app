@@ -74,67 +74,87 @@ export default function MyBookingsPage() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 key={booking._id}
-                className="group relative bg-white rounded-[56px] border-4 border-white shadow-[0_40px_100px_-10px_rgba(0,0,0,0.08)] overflow-hidden hover:shadow-blue-600/10 transition-all duration-700"
+                className="group relative bg-white rounded-[40px] md:rounded-[56px] border border-zinc-100 shadow-[0_40px_100px_-15px_rgba(0,0,0,0.08)] overflow-hidden transition-all duration-700"
               >
-                <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-zinc-50">
-                  {/* Ticket Left */}
-                  <div className="p-10 flex-1 space-y-10">
+                <div className="flex flex-col md:flex-row relative">
+                  {/* Perforated Edge Cutouts for Desktop (Side) */}
+                  <div className="absolute top-1/2 -left-4 w-8 h-8 bg-zinc-50 rounded-full border border-zinc-100 z-10 hidden md:block -translate-y-1/2" />
+                  <div className="absolute top-1/2 -right-4 w-8 h-8 bg-zinc-50 rounded-full border border-zinc-100 z-10 hidden md:block -translate-y-1/2" />
+
+                  {/* Ticket Main Section */}
+                  <div className="p-8 md:p-12 flex-1 space-y-8 md:space-y-10">
                     <div className="flex items-center justify-between">
-                       <div className="space-y-4">
-                          <div className="flex items-center gap-3">
-                             <div className="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-600/10 shadow-sm">Verified Booking</div>
-                             <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">{booking.date}</span>
+                       <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                             <div className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[8px] font-black uppercase tracking-widest border border-blue-600/10">Matrix-Verified</div>
+                             <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">{booking.date}</span>
                           </div>
-                          <h3 className="text-4xl font-black text-zinc-900 tracking-tighter italic uppercase italic">#{booking.ticketId}</h3>
+                          <h3 className="text-2xl md:text-4xl font-black text-zinc-900 tracking-tighter uppercase italic">#{booking.ticketId}</h3>
                        </div>
-                       <div className="w-16 h-16 bg-zinc-50 rounded-3xl flex items-center justify-center text-blue-600 shadow-inner group-hover:rotate-12 transition-transform">
-                          <Bus size={32} />
-                       </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-center gap-6 relative">
-                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center w-full px-20 text-zinc-100">
-                          <div className="h-1 w-full border-t-2 border-dashed border-zinc-200" />
-                          <ChevronRight size={24} className="mx-[-10px] text-blue-100" />
-                       </div>
-                       <div className="relative z-10 flex-1">
-                          <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-2">Origin</p>
-                          <p className="text-3xl font-black text-zinc-900 italic uppercase">{booking.boardingPoint}</p>
-                          <p className="text-xs font-bold text-blue-600 mt-2 uppercase italic tracking-tighter">{booking.departureTime}</p>
-                       </div>
-                       <div className="relative z-10 flex-1">
-                          <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-2">Terminal</p>
-                          <p className="text-3xl font-black text-zinc-900 italic uppercase">{booking.destination}</p>
-                          <p className="text-xs font-bold text-zinc-400 mt-2 uppercase italic tracking-tighter">Final Stop</p>
+                       <div className="w-12 h-12 md:w-16 md:h-16 bg-zinc-50 rounded-2xl md:rounded-3xl flex items-center justify-center text-blue-600 shadow-inner group-hover:rotate-12 transition-transform">
+                          <Bus size={24} className="md:w-8 md:h-8" />
                        </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-8 pt-10 border-t border-zinc-50">
-                       <div className="flex items-center gap-5 p-6 bg-zinc-50/50 rounded-[32px] border border-zinc-100">
-                          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-zinc-100 shadow-sm"><Navigation size={20} className="text-blue-600" /></div>
-                          <div><p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Bus</p><p className="text-sm font-black text-zinc-900">{booking.busDetails.busNumber}</p></div>
+                    <div className="flex items-center justify-between text-center gap-4 relative py-6 border-y border-zinc-50">
+                       <div className="flex-1 text-left">
+                          <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Origin</p>
+                          <p className="text-xl md:text-3xl font-black text-zinc-900 uppercase italic leading-none">{booking.boardingPoint}</p>
+                          <p className="text-[10px] font-bold text-blue-600 mt-1 uppercase tracking-tighter">{booking.departureTime}</p>
                        </div>
-                       <div className="flex items-center gap-5 p-6 bg-zinc-50/50 rounded-[32px] border border-zinc-100">
-                          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-zinc-100 shadow-sm"><CheckCircle size={20} className="text-green-500" /></div>
-                          <div><p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Seat</p><p className="text-sm font-black text-zinc-900">#{booking.passengers[0].seatNumber}</p></div>
+                       <div className="flex flex-col items-center px-2 opacity-20">
+                          <div className="w-px h-8 bg-zinc-300 mb-1" />
+                          <ChevronRight size={20} className="md:rotate-0" />
+                          <div className="w-px h-8 bg-zinc-300 mt-1" />
+                       </div>
+                       <div className="flex-1 text-right">
+                          <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Terminal</p>
+                          <p className="text-xl md:text-3xl font-black text-zinc-900 uppercase italic leading-none">{booking.destination}</p>
+                          <p className="text-[10px] font-bold text-zinc-400 mt-1 uppercase tracking-tighter">Final Hub</p>
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                       <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-zinc-100 shadow-sm"><Navigation size={14} className="text-blue-600" /></div>
+                          <div>
+                            <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none">Vehicle</p>
+                            <p className="text-xs font-black text-zinc-900 mt-0.5">{booking.busDetails.busNumber.split('-').slice(-1)}</p>
+                          </div>
+                       </div>
+                       <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-zinc-100 shadow-sm"><CheckCircle size={14} className="text-green-500" /></div>
+                          <div>
+                            <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none">Zone</p>
+                            <p className="text-xs font-black text-zinc-900 mt-0.5">Seat {booking.passengers[0].seatNumber}</p>
+                          </div>
                        </div>
                     </div>
                   </div>
 
+                  {/* Vertical Perforated Line for Desktop */}
+                  <div className="hidden md:block w-px border-r-2 border-dashed border-zinc-100 relative h-auto"></div>
+
+                  {/* Horizontal Perforated Line for Mobile */}
+                  <div className="md:hidden border-t-2 border-dashed border-zinc-100 mx-8 relative">
+                     <div className="absolute -top-3 -left-12 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100" />
+                     <div className="absolute -top-3 -right-12 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100" />
+                  </div>
+
                   {/* Ticket Right - QR Section */}
-                  <div className="p-12 md:w-80 bg-zinc-50/30 flex flex-col justify-between items-center md:items-end gap-12">
-                    <div className="text-center md:text-right space-y-8 w-full">
-                       <div className="p-8 bg-white rounded-[48px] shadow-2xl shadow-zinc-200/50 flex items-center justify-center group-hover:scale-105 transition-all duration-500 border border-zinc-50">
-                          <QRCodeSVG value={`TKT-${booking.ticketId}`} size={140} fgColor="#1e293b" />
+                  <div className="p-8 md:p-12 md:w-72 bg-zinc-50/50 flex flex-col justify-between items-center gap-8">
+                    <div className="text-center group flex flex-col items-center">
+                       <div className="p-6 bg-white rounded-[32px] shadow-xl border border-zinc-50 group-hover:scale-105 transition-all duration-500 mb-6">
+                          <QRCodeSVG value={`TKT-${booking.ticketId}`} size={120} fgColor="#18181b" />
                        </div>
-                       <div className="space-y-1">
-                          <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Payment Amount</p>
-                          <p className="text-5xl font-black text-zinc-900 tracking-tighter italic italic tracking-tighter">₹{booking.totalAmount}</p>
+                       <div className="space-y-0.5">
+                          <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">Quantum Fare</p>
+                          <p className="text-4xl font-black text-zinc-900 tracking-tighter italic">₹{booking.totalAmount}</p>
                        </div>
                     </div>
 
-                    <button className="w-full flex items-center justify-center gap-4 bg-zinc-900 text-white py-6 rounded-[32px] font-black text-base tracking-widest uppercase hover:bg-blue-600 transition-all shadow-xl shadow-zinc-950/20 active:scale-95">
-                       <Download size={24} /> Get Ticket
+                    <button className="w-full h-14 bg-zinc-900 text-white rounded-2xl font-black text-xs tracking-widest uppercase hover:bg-blue-600 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3">
+                       <Download size={18} /> Get Pass
                     </button>
                   </div>
                 </div>

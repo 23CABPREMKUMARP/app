@@ -247,6 +247,11 @@ function LiveMapContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hideNearestCard, setHideNearestCard] = useState(false);
   
+  const busesRef = useRef(buses);
+  useEffect(() => {
+    busesRef.current = buses;
+  }, [buses]);
+
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const lower = searchQuery.toLowerCase();
@@ -325,7 +330,7 @@ function LiveMapContent() {
   }, []);
 
   // Handle QR scanning
-  const handleQRScan = (decodedText: string) => {
+  const handleQRScan = React.useCallback((decodedText: string) => {
     setIsScanning(false);
     let busId = decodedText;
     
@@ -339,7 +344,7 @@ function LiveMapContent() {
       busId = decodedText.split("busId=")[1].split("&")[0];
     }
     
-    const foundBus = buses.find(b => b._id === busId || b.busNumber === busId);
+    const foundBus = busesRef.current.find(b => b._id === busId || b.busNumber === busId);
     if (foundBus) {
       setSelectedBus(foundBus);
       setIsBooking(true);
@@ -347,7 +352,7 @@ function LiveMapContent() {
     } else {
       alert("Electronic Signature mismatch. Bus not found in fleet grid.");
     }
-  };
+  }, []);
 
   // URL Bus Selection Auto-Trigger
   useEffect(() => {
@@ -1324,24 +1329,78 @@ function LiveMapContent() {
                 )}
 
                 {step === 4 && (
-                  <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-6 md:py-10 text-center space-y-10 md:space-y-16">
-                    <div className="w-24 h-24 md:w-40 md:h-40 bg-green-50 text-green-600 rounded-full flex items-center justify-center border-4 border-green-500/20 shadow-xl shadow-green-500/10">
-                       <CheckCircle size={48} className="md:w-[84px] md:h-[84px]" />
-                    </div>
-                    <div className="space-y-2 md:space-y-4">
-                       <h2 className="text-4xl md:text-6xl font-black text-zinc-900 tracking-tighter uppercase italic">Success!</h2>
-                       <p className="text-zinc-500 font-bold max-w-xs mx-auto text-sm md:text-lg px-4 leading-relaxed">Your seat has been reserved. Neural-ID: <span className="font-black text-primary block sm:inline">#{ticketId}</span></p>
-                    </div>
-                    
-                    <div className="p-8 md:p-12 bg-white rounded-[48px] md:rounded-[64px] shadow-2xl md:shadow-[0_40px_100px_rgba(0,0,0,0.06)] border border-zinc-50">
-                       <QRCodeSVG value={ticketId} size={140} className="md:w-[180px] md:h-[180px]" fgColor="#1e293b" />
+                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center p-2 sm:p-4 text-center">
+                    {/* Success Header */}
+                    <div className="mb-8 md:mb-12 space-y-4">
+                      <div className="w-20 h-20 md:w-28 md:h-28 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center border-2 border-green-500/20 shadow-xl shadow-green-500/5 mx-auto">
+                         <CheckCircle size={40} className="md:w-14 md:h-14" />
+                      </div>
+                      <div className="space-y-1">
+                         <h2 className="text-3xl md:text-5xl font-black text-zinc-900 tracking-tighter uppercase italic">Success!</h2>
+                         <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.3em]">Neural reservation confirmed</p>
+                      </div>
                     </div>
 
-                    <div className="w-full space-y-4 md:space-y-6">
-                      <Link href="/my-bookings" className="block w-full h-20 md:h-24 bg-primary text-white rounded-[32px] md:rounded-[40px] flex items-center justify-center text-xl md:text-3xl font-black tracking-tighter shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase italic">
-                         View Ticket
+                    {/* The Ticket Card */}
+                    <div className="w-full max-w-[340px] md:max-w-md bg-white rounded-[40px] md:rounded-[56px] shadow-[0_40px_100px_-15px_rgba(0,0,0,0.1)] border border-zinc-50 overflow-hidden relative group">
+                       {/* Perforated Edge Cutouts */}
+                       <div className="absolute top-[68%] -left-3 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100 z-10 hidden sm:block" />
+                       <div className="absolute top-[68%] -right-3 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100 z-10 hidden sm:block" />
+                       
+                       {/* Ticket Top: Details */}
+                       <div className="p-8 md:p-12 space-y-6">
+                          <div className="flex items-center justify-between">
+                             <div className="text-left">
+                                <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest leading-none">Matrix ID</p>
+                                <p className="text-xl font-black text-zinc-900 italic uppercase">#{ticketId}</p>
+                             </div>
+                             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary"><Bus size={18} /></div>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-4 py-4 border-y border-zinc-50">
+                             <div className="flex-1 text-left">
+                                <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Origin</p>
+                                <p className="text-base font-black text-zinc-900 leading-tight uppercase italic">{selectedBus?.routeId?.from}</p>
+                             </div>
+                             <ArrowRight className="text-primary opacity-30" size={20} />
+                             <div className="flex-1 text-right">
+                                <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Terminal</p>
+                                <p className="text-base font-black text-zinc-900 leading-tight uppercase italic">{selectedBus?.routeId?.to}</p>
+                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                             <div className="text-left">
+                                <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Departure</p>
+                                <p className="text-sm font-bold text-zinc-900">{selectedBus?.departureTime}</p>
+                             </div>
+                             <div className="text-right">
+                                <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Pass x{ticketQuantity}</p>
+                                <p className="text-sm font-bold text-zinc-900">₹{ticketQuantity * (selectedBus?.fare || 0)}</p>
+                             </div>
+                          </div>
+                       </div>
+
+                       {/* Perforated Line */}
+                       <div className="border-t-2 border-dashed border-zinc-100 mx-8 relative">
+                          <div className="absolute -top-3 -left-12 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100 sm:hidden" />
+                          <div className="absolute -top-3 -right-12 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100 sm:hidden" />
+                       </div>
+
+                       {/* Ticket Bottom: QR */}
+                       <div className="p-8 md:p-12 bg-zinc-50/50 flex flex-col items-center gap-6">
+                          <div className="p-4 bg-white rounded-3xl shadow-xl shadow-zinc-200/50 border border-zinc-50 group-hover:scale-105 transition-all duration-500">
+                             <QRCodeSVG value={ticketId} size={110} className="md:w-[140px] md:h-[140px]" fgColor="#18181b" />
+                          </div>
+                          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.4em] italic leading-none">Scan at Neural-Gate</p>
+                       </div>
+                    </div>
+
+                    <div className="w-full flex flex-col gap-4 mt-10 md:mt-12 px-4 max-w-[340px] md:max-w-md">
+                      <Link href="/my-bookings" className="w-full h-16 md:h-20 bg-primary text-white rounded-3xl flex items-center justify-center text-lg md:text-xl font-black tracking-tighter shadow-2xl shadow-primary/20 hover:bg-zinc-900 transition-all uppercase italic">
+                         View Digital Node
                       </Link>
-                      <button onClick={() => { setIsBooking(false); setSelectedBus(null); setStep(1); setTicketQuantity(1); }} className="text-zinc-400 font-black uppercase tracking-widest text-[10px] md:text-xs hover:text-zinc-900 mb-8 md:mb-0">Return to Grid</button>
+                      <button onClick={() => { setIsBooking(false); setSelectedBus(null); setStep(1); setTicketQuantity(1); }} className="text-zinc-400 font-black uppercase tracking-widest text-[9px] hover:text-zinc-900 transition-colors">Return to Transit Hub</button>
                     </div>
                   </motion.div>
                 )}
