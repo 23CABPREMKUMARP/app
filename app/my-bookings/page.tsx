@@ -12,22 +12,33 @@ export default function MyBookingsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => {
-      setBookings([
-        {
-          _id: "1",
-          ticketId: "MTRX-9A2X",
-          busDetails: { busNumber: "TN-01-AB-1234", routeName: "Anna Salai Line" },
-          boardingPoint: "Guindy",
-          destination: "T Nagar",
-          departureTime: "08:00 AM",
-          date: "2024-03-22",
-          totalAmount: 250,
-          passengers: [{ name: "Prem Kumar", seatNumber: "12" }],
+    const fetchBookings = async () => {
+      try {
+        const res = await fetch("/api/bookings/all");
+        if (res.ok) {
+          const data = await res.json();
+          setBookings(data.map((b: any) => ({
+             _id: b._id,
+             ticketId: b.ticketId || b._id.substring(b._id.length - 8).toUpperCase(),
+             busDetails: { 
+               busNumber: b.busId?.busNumber || "N/A", 
+               routeName: b.busId?.routeId?.routeName || "General Line" 
+             },
+             boardingPoint: b.boardingPoint || "System Entry",
+             destination: b.dropPoint || "System Exit",
+             departureTime: b.busId?.departureTime || "N/A",
+             date: new Date(b.bookingDate || Date.now()).toLocaleDateString(),
+             totalAmount: b.totalFare || 0,
+             passengers: b.passengerDetails ? [b.passengerDetails] : [{ name: "Matrix Traveler", seatNumber: "A1" }]
+          })));
         }
-      ]);
-      setLoading(false);
-    }, 1500);
+      } catch (e) {
+        console.error("Booking fetch error:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookings();
   }, []);
 
   return (
