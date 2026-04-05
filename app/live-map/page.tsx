@@ -268,12 +268,33 @@ function LiveMapContent() {
 
   // --- Initial Data Load ---
   useEffect(() => {
-    // Simulate API fetch delay
-    const timer = setTimeout(() => {
-      setBuses(MOCK_BUSES);
-      setLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    const fetchLiveBuses = async () => {
+      try {
+        const res = await fetch("/api/buses");
+        if (res.ok) {
+          const data = await res.json();
+          // Map real DB buses to the simulator's expected format if necessary
+          const matrixBuses = data.map((b: any) => ({
+            ...b,
+            _id: b._id,
+            location: {
+              lat: b.location?.lat || b.location?.latitude || 11.0168,
+              lng: b.location?.lng || b.location?.longitude || 76.9558,
+              rotation: b.location?.rotation || 0
+            }
+          }));
+          setBuses(matrixBuses.length > 0 ? matrixBuses : MOCK_BUSES);
+        } else {
+          setBuses(MOCK_BUSES);
+        }
+      } catch (e) {
+        console.warn("TRANSIT HUB OFFLINE: Using simulated matrix grid.");
+        setBuses(MOCK_BUSES);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLiveBuses();
   }, []);
 
   // --- Live Location Logic ---
@@ -584,10 +605,39 @@ function LiveMapContent() {
 
   const confirmBooking = async () => {
     setLoading(true);
-    const newTicketId = "MTRX-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-    setTicketId(newTicketId);
-    setBuses(prev => prev.map(bus => bus._id === selectedBus?._id ? { ...bus, availableSeats: bus.availableSeats - ticketQuantity } : bus));
-    setTimeout(() => { setStep(4); setLoading(false); }, 1500);
+    try {
+      const payload = {
+        busId: selectedBus._id,
+        boardingPoint: boardingPoint,
+        destination: dropPoint,
+        totalAmount: ticketQuantity * (selectedBus?.fare || 0),
+        passengers: [passengerDetails], // Matching the schema expectation
+        seats: Array.from({ length: ticketQuantity }, (_, i) => `S-${Math.floor(Math.random() * 50) + 1}`),
+        userId: "USER_CURRENT_MATRIX" // Placeholder for current session
+      };
+
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      
+      if (data.success && data.booking) {
+        setTicketId(data.booking.ticketId);
+        // Optimize local fleet count for immediate UI feedback
+        setBuses(prev => prev.map(bus => bus._id === selectedBus?._id ? { ...bus, availableSeats: bus.availableSeats - ticketQuantity } : bus));
+        setStep(4);
+      } else {
+        alert("CRITICAL SYNC ERROR: System failed to commit booking to matrix records.");
+      }
+    } catch (e) {
+      console.error("CRITICAL BOOKING ERROR:", e);
+      alert("NETWORK FAILURE: Unable to reach transit hub.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -1329,78 +1379,104 @@ function LiveMapContent() {
                 )}
 
                 {step === 4 && (
-                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center p-2 sm:p-4 text-center">
-                    {/* Success Header */}
-                    <div className="mb-8 md:mb-12 space-y-4">
-                      <div className="w-20 h-20 md:w-28 md:h-28 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center border-2 border-green-500/20 shadow-xl shadow-green-500/5 mx-auto">
-                         <CheckCircle size={40} className="md:w-14 md:h-14" />
+                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center p-0 md:p-4 text-center max-h-[85vh] overflow-y-auto no-scrollbar">
+                    {/* Success Header with Brand Presence */}
+                    <div className="mb-6 md:mb-10 space-y-4">
+                      <div className="w-16 h-16 md:w-24 md:h-24 bg-primary/10 text-primary rounded-full flex items-center justify-center border-2 border-primary/20 shadow-xl shadow-primary/5 mx-auto">
+                         <CheckCircle size={32} className="md:w-12 md:h-12" />
                       </div>
                       <div className="space-y-1">
-                         <h2 className="text-3xl md:text-5xl font-black text-zinc-900 tracking-tighter uppercase italic">Success!</h2>
-                         <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.3em]">Neural reservation confirmed</p>
+                         <h2 className="text-2xl md:text-4xl font-black text-zinc-900 tracking-tighter uppercase italic">PASS GENERATED</h2>
+                         <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">JeffBen Digital Node Sync OK</p>
                       </div>
                     </div>
 
-                    {/* The Ticket Card */}
-                    <div className="w-full max-w-[340px] md:max-w-md bg-white rounded-[40px] md:rounded-[56px] shadow-[0_40px_100px_-15px_rgba(0,0,0,0.1)] border border-zinc-50 overflow-hidden relative group">
-                       {/* Perforated Edge Cutouts */}
-                       <div className="absolute top-[68%] -left-3 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100 z-10 hidden sm:block" />
-                       <div className="absolute top-[68%] -right-3 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100 z-10 hidden sm:block" />
+                    {/* The Ticket Card - High Fidelity Corporate Rebranding */}
+                    <div className="w-full max-w-[340px] md:max-w-md bg-white rounded-[40px] md:rounded-[56px] shadow-[0_40px_100px_-15px_rgba(0,0,0,0.15)] border-2 border-zinc-50 overflow-hidden relative group">
+                       {/* Brand Header */}
+                       <div className="bg-zinc-900 p-6 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-black italic">JB</div>
+                             <div className="text-left">
+                                <p className="text-[9px] font-black text-primary uppercase tracking-widest leading-none">Intelligence</p>
+                                <p className="text-sm font-black text-white italic uppercase tracking-tighter">JeffBen Mobility</p>
+                             </div>
+                          </div>
+                          <div className="text-right">
+                             <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none">Gate Link</p>
+                             <p className="text-[10px] font-black text-green-500 uppercase flex items-center gap-1 justify-end mt-1"><ShieldCheck size={10} /> ENCRYPTED</p>
+                          </div>
+                       </div>
                        
-                       {/* Ticket Top: Details */}
+                       {/* Perforated Edge Cutouts (Desktop) */}
+                       <div className="absolute top-[65%] -left-3 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100 z-10 hidden sm:block" />
+                       <div className="absolute top-[65%] -right-3 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100 z-10 hidden sm:block" />
+                       
+                       {/* Ticket Content */}
                        <div className="p-8 md:p-12 space-y-6">
                           <div className="flex items-center justify-between">
                              <div className="text-left">
-                                <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest leading-none">Matrix ID</p>
-                                <p className="text-xl font-black text-zinc-900 italic uppercase">#{ticketId}</p>
+                                <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest leading-none">Ticket Matrix ID</p>
+                                <p className="text-2xl font-black text-zinc-900 tracking-tighter italic uppercase mt-1">#{ticketId || "JBN-SYNC-001"}</p>
                              </div>
-                             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary"><Bus size={18} /></div>
+                             <div className="w-12 h-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:text-primary transition-colors border border-zinc-100 shadow-inner"><Bus size={24} /></div>
                           </div>
 
-                          <div className="flex items-center justify-between gap-4 py-4 border-y border-zinc-50">
+                          <div className="flex items-center justify-between gap-4 py-6 border-y border-zinc-50">
                              <div className="flex-1 text-left">
-                                <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Origin</p>
-                                <p className="text-base font-black text-zinc-900 leading-tight uppercase italic">{selectedBus?.routeId?.from}</p>
+                                <p className="text-[9px] font-black text-zinc-300 uppercase tracking-[0.2em] mb-1.5 leading-none">Boarding Hub</p>
+                                <p className="text-base md:text-lg font-black text-zinc-900 leading-tight uppercase tracking-tighter italic">{selectedBus?.routeId?.from || "TERMINAL A"}</p>
                              </div>
-                             <ArrowRight className="text-primary opacity-30" size={20} />
+                             <ArrowRight className="text-primary opacity-40 shrink-0" size={24} />
                              <div className="flex-1 text-right">
-                                <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Terminal</p>
-                                <p className="text-base font-black text-zinc-900 leading-tight uppercase italic">{selectedBus?.routeId?.to}</p>
+                                <p className="text-[9px] font-black text-zinc-300 uppercase tracking-[0.2em] mb-1.5 leading-none">Arrival Node</p>
+                                <p className="text-base md:text-lg font-black text-zinc-900 leading-tight uppercase tracking-tighter italic">{selectedBus?.routeId?.to || "CENTRAL HUB"}</p>
                              </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-2 gap-8">
                              <div className="text-left">
-                                <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Departure</p>
-                                <p className="text-sm font-bold text-zinc-900">{selectedBus?.departureTime}</p>
+                                <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest mb-1.5 leading-none">Departure</p>
+                                <p className="text-base font-black text-zinc-900 tracking-tighter">{selectedBus?.departureTime || "LIVE"}</p>
                              </div>
                              <div className="text-right">
-                                <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Pass x{ticketQuantity}</p>
-                                <p className="text-sm font-bold text-zinc-900">₹{ticketQuantity * (selectedBus?.fare || 0)}</p>
+                                <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest mb-1.5 leading-none">Quantum Fare</p>
+                                <p className="text-base font-black text-primary tracking-tighter italic">₹{ticketQuantity * (selectedBus?.fare || 0)}</p>
                              </div>
                           </div>
                        </div>
 
-                       {/* Perforated Line */}
-                       <div className="border-t-2 border-dashed border-zinc-100 mx-8 relative">
+                       {/* Perforated Line Decoration */}
+                       <div className="border-t-2 border-dashed border-zinc-100 mx-10 relative">
                           <div className="absolute -top-3 -left-12 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100 sm:hidden" />
                           <div className="absolute -top-3 -right-12 w-6 h-6 bg-zinc-50 rounded-full border border-zinc-100 sm:hidden" />
                        </div>
 
-                       {/* Ticket Bottom: QR */}
+                       {/* Ticket Bottom: Scannable Node */}
                        <div className="p-8 md:p-12 bg-zinc-50/50 flex flex-col items-center gap-6">
-                          <div className="p-4 bg-white rounded-3xl shadow-xl shadow-zinc-200/50 border border-zinc-50 group-hover:scale-105 transition-all duration-500">
-                             <QRCodeSVG value={ticketId} size={110} className="md:w-[140px] md:h-[140px]" fgColor="#18181b" />
+                          <div className="p-6 bg-white rounded-[40px] shadow-2xl shadow-zinc-200/40 border-2 border-zinc-100 group-hover:scale-105 transition-all duration-700">
+                             <QRCodeSVG 
+                               value={`https://jeffben.com/verify/${ticketId}`} 
+                               size={140} 
+                               className="md:w-[180px] md:h-[180px]" 
+                               fgColor="#18181b" 
+                               level="H"
+                             />
                           </div>
-                          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.4em] italic leading-none">Scan at Neural-Gate</p>
+                          <div className="text-center space-y-1.5">
+                             <p className="text-[9px] font-black text-zinc-950 uppercase tracking-[0.5em] italic leading-none">NEURAL-SYNC GATE</p>
+                             <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Hold high at terminal gate sync point</p>
+                          </div>
                        </div>
                     </div>
 
-                    <div className="w-full flex flex-col gap-4 mt-10 md:mt-12 px-4 max-w-[340px] md:max-w-md">
-                      <Link href="/my-bookings" className="w-full h-16 md:h-20 bg-primary text-white rounded-3xl flex items-center justify-center text-lg md:text-xl font-black tracking-tighter shadow-2xl shadow-primary/20 hover:bg-zinc-900 transition-all uppercase italic">
-                         View Digital Node
+                    <div className="w-full flex flex-col gap-4 mt-8 md:mt-12 px-4 max-w-[340px] md:max-w-md pb-8">
+                      <Link href="/my-bookings" className="w-full h-16 md:h-20 bg-zinc-900 text-white rounded-[32px] flex items-center justify-center text-lg md:text-xl font-black tracking-tighter hover:bg-primary transition-all uppercase italic shadow-2xl">
+                         Access Ticket History
                       </Link>
-                      <button onClick={() => { setIsBooking(false); setSelectedBus(null); setStep(1); setTicketQuantity(1); }} className="text-zinc-400 font-black uppercase tracking-widest text-[9px] hover:text-zinc-900 transition-colors">Return to Transit Hub</button>
+                      <button onClick={() => { setIsBooking(false); setSelectedBus(null); setStep(1); setTicketQuantity(1); }} className="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px] hover:text-primary transition-colors flex items-center justify-center gap-2">
+                        <Zap size={14} className="text-primary" /> Return to Transit Hub
+                      </button>
                     </div>
                   </motion.div>
                 )}

@@ -164,7 +164,10 @@ export default function MyBookingsPage() {
                        </div>
                     </div>
 
-                    <button className="w-full h-14 bg-zinc-900 text-white rounded-2xl font-black text-xs tracking-widest uppercase hover:bg-blue-600 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3">
+                    <button 
+                      onClick={() => window.print()}
+                      className="w-full h-14 bg-zinc-900 text-white rounded-2xl font-black text-xs tracking-widest uppercase hover:bg-blue-600 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 no-print"
+                    >
                        <Download size={18} /> Get Pass
                     </button>
                   </div>
@@ -174,12 +177,21 @@ export default function MyBookingsPage() {
           </div>
         )}
 
-        <div className="mt-20 flex items-center justify-center gap-12 text-[10px] font-black text-zinc-300 uppercase tracking-[0.4em] relative z-10">
+        <div className="mt-20 flex items-center justify-center gap-12 text-[10px] font-black text-zinc-300 uppercase tracking-[0.4em] relative z-10 no-print">
            <div className="flex items-center gap-3"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> Live Status Sync</div>
            <div>© 2024 JEFFBEN SYSTEMS</div>
            <div className="flex items-center gap-3"><ShieldCheck size={14} className="text-blue-400" /> End-to-End Encrypted</div>
         </div>
       </div>
+
+      <style jsx global>{`
+        @media print {
+          .no-print { display: none !important; }
+          body { background: white !important; }
+          main { padding: 0 !important; }
+          nav { display: none !important; }
+        }
+      `}</style>
     </main>
   );
 }
