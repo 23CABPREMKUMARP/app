@@ -40,7 +40,7 @@ interface MapLayers {
   showBuildings: boolean;
 }
 
-const BusMarker = React.memo(({ isRunning, busNumber, isSelected, speed, availableSeats, from, to }: { isRunning: boolean, busNumber: string, isSelected: boolean, speed?: number, availableSeats?: number, from?: string, to?: string }) => {
+const BusMarker = React.memo(({ isRunning, busNumber, isSelected, speed, availableSeats, from, to, rotationDegrees, mapBearing }: { isRunning: boolean, busNumber: string, isSelected: boolean, speed?: number, availableSeats?: number, from?: string, to?: string, rotationDegrees?: number, mapBearing?: number }) => {
   return (
     <div className={`flex flex-col items-center justify-center relative transition-all duration-300 ${isSelected ? "z-50" : "z-10"}`}>
       {/* HUD Plate - Pure Origin-Dest Zero-Gap Interface */}
@@ -374,7 +374,7 @@ export default function LiveBusMap({
           .addTo(map);
           
         const root = createRoot(el);
-        root.render(<BusMarker rotationDegrees={bus.location.rotation} isRunning={isRunning} busNumber={bus.busNumber} isSelected={isSelected} mapBearing={mapBearing} from={bus.routeId?.from} to={bus.routeId?.to} />);
+        root.render(<BusMarker rotationDegrees={bus.location.rotation} isRunning={isRunning} busNumber={bus.busNumber} isSelected={isSelected} mapBearing={mapBearing} from={bus.routeId?.from} to={bus.routeId?.to} speed={bus.speed} availableSeats={bus.availableSeats} />);
         busMarkers.current[bus._id] = { 
             marker, root, isRunning, isSelected, 
             rotation: bus.location.rotation,
