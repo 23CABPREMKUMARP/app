@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Html5QrcodeScanner, Html5Qrcode } from "html5-qrcode";
-import { ShieldCheck, LogIn, Camera, QrCode, CheckCircle2, AlertTriangle, XCircle, Clock, MapPin, User, ChevronLeft, Volume2, Vibration } from "lucide-react";
+import { ShieldCheck, LogIn, Camera, QrCode, CheckCircle2, AlertTriangle, XCircle, Clock, MapPin, User, ChevronLeft, Volume2, Vibrate } from "lucide-react";
 import Image from "next/image";
 
 export default function ConductorPanel() {
