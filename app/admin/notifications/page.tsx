@@ -21,7 +21,7 @@ import {
   AlertTriangle,
   Users
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 const mockNotifications = [
   { id: "NTF-1023", type: "System", channel: "App", title: "Bus Delay: TN-38-AM-111", date: "Today, 10:12 AM", status: "Sent" },

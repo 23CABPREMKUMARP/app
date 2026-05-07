@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Html5QrcodeScanner, Html5Qrcode } from "html5-qrcode";
 import { X, Camera, Zap, ShieldCheck } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 interface QRScannerProps {
   onScan: (decodedText: string) => void;
@@ -118,14 +118,14 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[3000] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-6"
+      className="fixed inset-0 z-[3000] flex items-end sm:items-center justify-center bg-black/60 premium-blur p-0 sm:p-6 gpu-accelerated"
     >
       <motion.div 
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className="relative w-full max-w-sm bg-zinc-950/95 backdrop-blur-2xl rounded-t-[40px] sm:rounded-[48px] overflow-hidden shadow-[0_-20px_80px_rgba(0,0,0,0.5)] border-t sm:border-4 border-white/5 flex flex-col max-h-[75vh] md:max-h-[85vh]"
+        transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+        className="relative w-full max-w-sm bg-zinc-950/95 premium-blur rounded-t-[40px] sm:rounded-[48px] overflow-hidden shadow-[0_-20px_80px_rgba(0,0,0,0.5)] border-t sm:border-4 border-white/5 flex flex-col max-h-[75vh] md:max-h-[85vh] gpu-accelerated"
       >
         <div className="absolute top-6 right-6 z-[3010]">
           <button 

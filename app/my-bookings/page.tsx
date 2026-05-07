@@ -143,7 +143,14 @@ export default function MyBookingsPage() {
 
                               {/* Header Section */}
                               <div className="relative z-10 text-center mb-10">
-                                 <p className="text-xl md:text-2xl font-vintage italic text-[#5d4037]/80 leading-none mb-2">JeffBen</p>
+                                  <div className="flex items-center justify-center gap-4 mb-4">
+                                     <Image src="/logo2.png" alt="JeffBen" width={40} height={40} className="object-contain" />
+                                     <div className="h-8 w-[1px] bg-[#5d4037]/20" />
+                                     <Image src="/hero-logo.png" alt="Digi Bus" width={40} height={40} className="object-contain mix-blend-multiply" />
+                                  </div>
+                                  <p className="text-[10px] font-black text-[#5d4037]/50 uppercase tracking-[0.4em] mb-1">Digi Bus Framework</p>
+                                  <p className="text-xl md:text-2xl font-vintage italic text-[#5d4037]/80 leading-none mb-2">JeffBen Systems</p>
+
                                  <h3 className="text-3xl md:text-5xl font-serif font-black tracking-tight text-[#5d4037] leading-none mb-2 uppercase">JeffBen Boarding Pass</h3>
                                  <div className="flex items-center justify-center gap-6">
                                     <div className="h-[2px] bg-gradient-to-r from-transparent via-[#5d4037]/40 to-transparent flex-1" />
@@ -239,7 +246,13 @@ export default function MyBookingsPage() {
                                     </div>
                                  </div>
 
-                                 <div className="p-3 bg-white/10 rounded-2xl group-hover:scale-105 transition-transform duration-500 shadow-inner border border-[#5d4037]/5">
+                                 <div className="p-3 bg-[#FF9933]/10 rounded-2xl group-hover:scale-105 transition-transform duration-500 shadow-inner border-2 border-[#FF9933] relative overflow-hidden">
+                                    {/* Secure Watermark Layer */}
+                                    <div className="absolute inset-0 opacity-[0.4] pointer-events-none flex flex-wrap gap-2 items-center justify-center text-[6px] font-black uppercase tracking-tighter text-white -rotate-12 scale-110">
+                                       {Array(20).fill(null).map((_, i) => (
+                                          <span key={i} className="whitespace-nowrap">DIGI BUS • JEFFBEN •</span>
+                                       ))}
+                                    </div>
                                     <QRCodeSVG
                                        value={booking.qrToken || btoa(JSON.stringify({
                                           t: booking.ticketId,
@@ -250,6 +263,14 @@ export default function MyBookingsPage() {
                                        bgColor="transparent"
                                        level="H"
                                        className="drop-shadow-sm"
+                                       imageSettings={{
+                                          src: "/logo2.png",
+                                          x: undefined,
+                                          y: undefined,
+                                          height: 35,
+                                          width: 35,
+                                          excavate: true,
+                                       }}
                                     />
                                  </div>
                               </div>

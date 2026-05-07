@@ -8,10 +8,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { 
-  Linkedin, Twitter, Github, Mail, Youtube, Facebook, 
+  Mail, Youtube, Facebook, 
   Ticket, ShieldCheck, Lock, X, ChevronRight 
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { UserButton } from "@clerk/nextjs";
 
 const Globe = dynamic(() => import("@/src/registry/magicui/globe").then(m => m.Globe), { ssr: false });
 const AuroraBackground = dynamic(() => import("../src/components/ui/aurora-background").then(m => m.AuroraBackground), { ssr: false });
@@ -35,26 +36,28 @@ export default function ProductPage() {
   };
 
   return (
-    <main className="relative w-full overflow-x-hidden">
+    <main className="relative w-full overflow-x-hidden gpu-accelerated">
       {/* 6-Digit Neural Access Gate */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {showPinGate && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-2xl flex items-center justify-center p-6"
+            className="fixed inset-0 z-[100] premium-blur bg-zinc-950/90 flex items-center justify-center p-6"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className={`w-full max-w-md bg-white rounded-[40px] p-10 shadow-2xl border-2 ${error ? "border-rose-500 animate-shake" : "border-zinc-100"}`}
+              exit={{ scale: 0.9, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className={`w-full max-w-md bg-white rounded-[40px] p-10 shadow-2xl border-2 gpu-accelerated ${error ? "border-rose-500 animate-shake" : "border-zinc-100"}`}
             >
               <div className="flex justify-between items-center mb-8">
                 <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-500">
                   <Lock size={24} />
                 </div>
-                <button onClick={() => setShowPinGate(false)} className="text-zinc-400 hover:text-zinc-900 transition-colors">
+                <button onClick={() => setShowPinGate(false)} className="text-zinc-400 hover:text-zinc-900 transition-colors p-2">
                   <X size={24} />
                 </button>
               </div>
@@ -76,7 +79,7 @@ export default function ProductPage() {
                 <button 
                   type="submit"
                   disabled={pin.length < 6}
-                  className="w-full h-20 bg-zinc-900 text-white rounded-[32px] font-black text-xl tracking-tighter hover:bg-orange-500 transition-all flex items-center justify-center gap-3 disabled:opacity-20 active:scale-95"
+                  className="w-full h-20 bg-zinc-900 text-white rounded-[32px] font-black text-xl tracking-tighter hover:bg-orange-500 transition-all flex items-center justify-center gap-3 disabled:opacity-20 active:scale-95 shadow-xl hover:shadow-orange-500/20"
                 >
                   Confirm Identity <ChevronRight size={24} />
                 </button>
@@ -86,13 +89,13 @@ export default function ProductPage() {
         )}
       </AnimatePresence>
 
-      <div className="absolute top-2 md:top-5 left-0 z-50 flex items-center gap-0 pointer-events-auto cursor-pointer" onClick={() => setShowPinGate(true)}>
+      <div className="absolute top-2 md:top-5 left-0 z-50 flex items-center gap-0 pointer-events-auto cursor-pointer group" onClick={() => setShowPinGate(true)}>
           <Image
             src="/logo2.png"
             alt="JEFFBEN Branding"
             width={500}
             height={200}
-            className="h-24 sm:h-28 md:h-36 w-auto object-contain transition-transform hover:scale-105 duration-300 px-4 md:px-8"
+            className="h-24 sm:h-28 md:h-36 w-auto object-contain transition-transform group-hover:scale-105 duration-500 px-4 md:px-8 gpu-accelerated"
             priority
           />
       </div>
@@ -101,48 +104,64 @@ export default function ProductPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
+          transition={{ delay: 0.2, duration: 0.8, type: "spring" }}
           viewport={{ once: true }}
+          className="gpu-accelerated"
         >
-          <div onClick={() => setShowPinGate(true)}>
+          <div onClick={() => setShowPinGate(true)} className="group">
             <Image
               src="/hero-logo.png"
               alt="JEFFBEN Strategic Emblem"
               width={800}
               height={800}
-              className="h-16 sm:h-24 md:h-48 w-auto object-contain mix-blend-multiply drop-shadow-2xl transition-transform hover:scale-105 duration-300 cursor-pointer"
+              className="h-16 sm:h-24 md:h-48 w-auto object-contain mix-blend-multiply drop-shadow-2xl transition-transform group-hover:scale-110 duration-500 cursor-pointer"
               priority
             />
           </div>
         </motion.div>
       </div>
 
+      {/* User Profile / Logout */}
+      <div className="fixed top-6 right-6 z-[60]">
+        <UserButton 
+          afterSignOutUrl="/sign-in"
+          appearance={{
+            elements: {
+              userButtonAvatarBox: "w-12 h-12 border-2 border-white/20 shadow-xl hover:scale-105 transition-transform",
+              userButtonPopoverCard: "bg-[#121212] border border-white/10 text-white",
+              userButtonPopoverActionButton: "text-gray-300 hover:bg-white/5",
+              userButtonPopoverActionButtonText: "text-gray-300",
+              userButtonPopoverFooter: "hidden"
+            }
+          }}
+        />
+      </div>
+
       {/* ================= HERO SECTION ================= */}
-      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
+      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center gpu-accelerated">
         {/* Background Bus Image */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/smart-bus.png"
             alt="Strategic Automated Mobility Infrastructure"
             fill
-            className="object-cover md:object-center opacity-90 transition-transform duration-1000"
+            sizes="100vw"
+            className="object-cover md:object-center opacity-90 transition-transform duration-[2000ms] ease-out"
             priority
           />
           {/* Professional Overlays for Legibility */}
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-50/80 via-orange-50/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-50/80 via-orange-50/40 to-transparent premium-blur" />
           <div className="absolute inset-0 bg-gradient-to-b from-orange-50/20 via-transparent to-orange-50" />
         </div>
 
-
-
-        <AuroraBackground className="bg-transparent text-black h-full w-full">
+        <AuroraBackground className="bg-transparent text-black h-full w-full gpu-accelerated">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{
               delay: 0.2,
-              duration: 0.8,
-              ease: "easeInOut",
+              duration: 1,
+              ease: [0.22, 1, 0.36, 1], // Custom cubic-bezier for premium feel
             }}
             viewport={{ once: true }}
             className="relative z-10 flex flex-col items-center justify-start text-center px-6 md:px-24 pt-12 md:pt-24 w-full h-full"
@@ -151,7 +170,7 @@ export default function ProductPage() {
               <motion.h1
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
+                transition={{ delay: 0.4, duration: 0.8, type: "spring" }}
                 viewport={{ once: true }}
                 className="text-4xl sm:text-6xl md:text-8xl font-bold bg-gradient-to-b from-black to-zinc-600 bg-clip-text text-transparent tracking-tight leading-tight"
               >
@@ -162,7 +181,7 @@ export default function ProductPage() {
               <motion.h2
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
-                transition={{ delay: 0.6, duration: 0.6 }}
+                transition={{ delay: 0.6, duration: 1 }}
                 viewport={{ once: true }}
                 className="mt-6 text-xl sm:text-2xl md:text-4xl font-semibold text-zinc-900 leading-snug"
               >
@@ -175,7 +194,7 @@ export default function ProductPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="rounded-full bg-black px-10 py-4 text-white text-lg font-medium transition-shadow hover:shadow-2xl cursor-pointer"
+                  className="rounded-full bg-black px-10 py-4 text-white text-lg font-medium transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] cursor-pointer gpu-accelerated"
                 >
                   Explore Solutions
                 </motion.button>
@@ -187,13 +206,13 @@ export default function ProductPage() {
       </section>
 
       {/* ================= CONTAINER SCROLL SECTION ================= */}
-      <section className="relative flex flex-col overflow-hidden bg-primary text-zinc-950">
+      <section className="relative flex flex-col overflow-hidden bg-primary text-zinc-950 gpu-accelerated">
         <ContainerScroll
           titleComponent={
-            <div className="flex items-center justify-center flex-col">
+            <div className="flex items-center justify-center flex-col gpu-accelerated">
               <h1 className="text-2xl sm:text-4xl font-semibold text-white/90 text-center">
                 Experience the Future of <br />
-                <span className="text-3xl sm:text-4xl md:text-[6rem] font-black mt-2 leading-none text-white tracking-tighter">
+                <span className="text-3xl sm:text-4xl md:text-[6rem] font-black mt-2 leading-none text-white tracking-tighter drop-shadow-2xl">
                   Automated Mobility
                 </span>
               </h1>
@@ -206,31 +225,31 @@ export default function ProductPage() {
             loop
             muted
             playsInline
-            preload="metadata"
-            className="mx-auto rounded-2xl object-cover h-full w-full"
+            preload="auto"
+            className="mx-auto rounded-2xl object-cover h-full w-full gpu-accelerated shadow-2xl"
             draggable={false}
           />
         </ContainerScroll>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.8, type: "spring" }}
           viewport={{ once: true }}
           className="container mx-auto px-6 max-w-4xl text-center pb-20 -mt-10 md:-mt-64 relative z-10"
         >
-          <p className="text-base md:text-xl text-white font-bold leading-relaxed">
+          <p className="text-base md:text-xl text-white font-bold leading-relaxed drop-shadow-md">
             JEFFBEN Systems is spearheading the digital transformation of urban mobility across Tamil Nadu. Through our proprietary DIGI BUS framework, we deploy advanced automated fare collection and mission-critical fleet intelligence systems. Our mission is to provide transport authorities with robust, data-driven operational control while delivering a premier, frictionless experience for every commuter.
           </p>
         </motion.div>
       </section>
 
       {/* ================= WHAT WE DO SECTION ================= */}
-      <section className="relative py-12 md:py-24 bg-background text-black border-y border-zinc-200 overflow-hidden">
+      <section className="relative py-12 md:py-24 bg-background text-black border-y border-zinc-200 overflow-hidden gpu-accelerated">
         <div className="container mx-auto px-6 max-w-5xl text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-5xl font-bold mb-8 tracking-tight">Strategic Capabilities</h2>
@@ -250,13 +269,14 @@ export default function ProductPage() {
                   key={i}
                   initial={{ opacity: 0, x: -10 }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={{ y: -5, scale: 1.02 }}
+                  transition={{ delay: i * 0.1, type: "spring" }}
+                  whileHover={{ y: -8, scale: 1.02, backgroundColor: "#fff" }}
+                  whileTap={{ scale: 0.98 }}
                   viewport={{ once: true }}
-                  className="flex items-start gap-4 p-5 rounded-xl bg-gray-50 border border-zinc-200 shadow-sm transition-all duration-300"
+                  className="flex items-start gap-4 p-6 rounded-2xl bg-gray-50 border border-zinc-200 shadow-sm transition-all duration-500 cursor-pointer gpu-accelerated"
                 >
-                  <span className="text-orange-500 text-xl font-bold">•</span>
-                  <span className="text-neutral-700 font-medium">{item}</span>
+                  <div className="w-2 h-2 rounded-full bg-orange-500 mt-2.5 shrink-0" />
+                  <span className="text-neutral-700 font-bold tracking-tight">{item}</span>
                 </motion.div>
               ))}
             </div>
@@ -269,14 +289,14 @@ export default function ProductPage() {
       </section>
 
       {/* ================= ABOUT US PAGE CONTENT ================= */}
-      <section className="relative py-12 md:py-24 bg-primary text-white border-y border-primary/20 overflow-hidden">
+      <section className="relative py-12 md:py-24 bg-primary text-white border-y border-primary/20 overflow-hidden gpu-accelerated">
         <div className="container mx-auto px-6 max-w-screen-2xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-24 items-center">
             {/* Left Column: All Text Content */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.8, type: "spring" }}
               viewport={{ once: true }}
               className="space-y-8 text-left"
             >
@@ -303,17 +323,24 @@ export default function ProductPage() {
                       "Scalable state-wide architecture",
                       "Smart City integration ready"
                     ].map((item, i) => (
-                      <div key={i} className="flex items-start gap-3 md:gap-4 group">
-                        <div className="h-2 w-2 md:h-3 md:w-3 rounded-full bg-white shrink-0 mt-1.5 group-hover:scale-125 transition-transform" />
-                        <span className="text-sm sm:text-base md:text-lg lg:text-xl text-white font-black leading-tight">{item}</span>
-                      </div>
+                      <motion.div 
+                        key={i} 
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        viewport={{ once: true }}
+                        className="flex items-start gap-3 md:gap-4 group cursor-default"
+                      >
+                        <div className="h-2 w-2 md:h-3 md:w-3 rounded-full bg-white shrink-0 mt-1.5 group-hover:scale-150 transition-transform duration-300" />
+                        <span className="text-sm sm:text-base md:text-lg lg:text-xl text-white font-black leading-tight group-hover:translate-x-1 transition-transform duration-300">{item}</span>
+                      </motion.div>
                     ))}
                   </div>
 
                   {/* Mobile-only globe positioned beside the list, scaled down to fit */}
                   <div className="lg:hidden relative h-[140px] sm:h-[300px] w-full flex items-center justify-center translate-x-4">
                     <div className="absolute inset-0 bg-white/20 rounded-full blur-[40px] sm:blur-[60px] scale-125" />
-                    <Globe className="relative z-10 w-full h-full" />
+                    <Globe className="relative z-10 w-full h-full gpu-accelerated" />
                   </div>
                 </div>
               </div>
@@ -323,8 +350,8 @@ export default function ProductPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
-              className="hidden lg:flex relative aspect-square w-full lg:h-[800px] xl:h-[900px] items-center justify-center"
+              transition={{ duration: 1, type: "spring", damping: 20 }}
+              className="hidden lg:flex relative aspect-square w-full lg:h-[800px] xl:h-[900px] items-center justify-center gpu-accelerated"
             >
               <div className="absolute inset-0 bg-white/20 rounded-full blur-[150px] xl:blur-[200px] scale-110" />
               <Globe className="relative z-10 w-full h-full" />
@@ -334,43 +361,42 @@ export default function ProductPage() {
       </section>
 
       {/* ================= OUR VISION SECTION ================= */}
-      <section className="relative py-12 md:py-24 bg-background text-black overflow-hidden">
+      <section className="relative py-12 md:py-24 bg-background text-black overflow-hidden gpu-accelerated">
         <div className="container mx-auto px-4 sm:px-6 max-w-4xl text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8, type: "spring" }}
             viewport={{ once: true }}
-            className="p-8 sm:p-12 rounded-3xl bg-sky-50 border border-sky-100 shadow-inner"
+            className="p-8 sm:p-12 rounded-[48px] bg-sky-50 border border-sky-100 shadow-inner gpu-accelerated"
           >
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-6 tracking-tight text-zinc-950">Our Vision</h2>
-            <p className="text-lg sm:text-xl md:text-2xl text-zinc-900 font-medium leading-relaxed">
-              To architect a comprehensive digital infrastructure for an intelligent, sustainable, and highly efficient public transit network across Tamil Nadu, establishing a global benchmark for smart urban mobility.
+            <p className="text-lg sm:text-xl md:text-2xl text-zinc-900 font-medium leading-relaxed italic">
+              &quot;To architect a comprehensive digital infrastructure for an intelligent, sustainable, and highly efficient public transit network across Tamil Nadu, establishing a global benchmark for smart urban mobility.&quot;
             </p>
           </motion.div>
         </div>
       </section>
 
       {/* ================= MEET OUR FOUNDER SECTION ================= */}
-      <section className="relative py-12 md:py-24 bg-primary text-zinc-950 overflow-hidden">
+      <section className="relative py-12 md:py-24 bg-primary text-zinc-950 overflow-hidden gpu-accelerated">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.8, type: "spring" }}
               viewport={{ once: true }}
-              className="relative w-full max-w-[380px] mx-auto md:mx-0 group"
+              className="relative w-full max-w-[380px] mx-auto md:mx-0 group gpu-accelerated"
             >
-              <div className="absolute -inset-4 bg-gradient-to-tr from-orange-500 to-orange-400 opacity-20 blur-2xl group-hover:opacity-30 transition-opacity" />
-              <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-zinc-200 shadow-2xl">
+              <div className="absolute -inset-4 bg-gradient-to-tr from-orange-500 to-orange-400 opacity-20 blur-2xl group-hover:opacity-40 transition-opacity duration-700" />
+              <div className="relative aspect-[4/5] rounded-[40px] overflow-hidden border-8 border-white/20 shadow-2xl shadow-black/20">
                 <Image
                   src="/founder.jpg"
                   alt="Founder (JeffBen)"
                   width={576}
                   height={1024}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  priority
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
               </div>
             </motion.div>
@@ -378,13 +404,14 @@ export default function ProductPage() {
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.8, type: "spring" }}
               viewport={{ once: true }}
+              className="gpu-accelerated"
             >
               <h2 className="text-3xl md:text-5xl font-bold mb-2 text-white">Executive Leadership</h2>
-              <p className="text-xl text-zinc-900 font-semibold mb-6">JeffBen — Founder & CEO</p>
+              <p className="text-xl text-zinc-900 font-black uppercase tracking-widest mb-6 italic opacity-80">JeffBen — Founder & CEO</p>
 
-              <p className="text-lg text-white leading-relaxed mb-6">
+              <p className="text-lg text-white leading-relaxed mb-6 font-medium">
                 A distinguished technologist and entrepreneur focused on addressing complex infrastructure challenges through innovation. With expertise in systems engineering and a strategic vision for urban advancement, JeffBen established JEFFBEN Systems to redefine public accessibility and operational efficiency in modern transit.
               </p>
 
@@ -392,16 +419,16 @@ export default function ProductPage() {
                 {[
                   { icon: <Youtube className="w-6 h-6" />, href: "https://youtube.com/@jeffbenofficial?si=46pT3R8BLOVA9AFP", label: "YouTube" },
                   { icon: <Mail className="w-6 h-6" />, href: "mailto:jeffbenofficial1@gmail.com", label: "Email" },
-                  { icon: <span className="font-bold text-xl px-1">f</span>, href: "https://www.facebook.com/share/1C7WBtFHeS/", label: "Facebook" }
+                  { icon: <span className="font-black text-xl px-2">f</span>, href: "https://www.facebook.com/share/1C7WBtFHeS/", label: "Facebook" }
                 ].map((social, i) => (
                   <motion.a
                     key={i}
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    whileHover={{ scale: 1.2, y: -4 }}
+                    whileHover={{ scale: 1.15, y: -6, backgroundColor: "#fff", color: "#000" }}
                     whileTap={{ scale: 0.9 }}
-                    className="p-3 rounded-full text-white hover:text-zinc-950 transition-colors shadow-sm flex items-center justify-center bg-white/20 border border-white/60 backdrop-blur-md"
+                    className="p-4 rounded-2xl text-white transition-all shadow-xl flex items-center justify-center bg-white/10 border border-white/20 backdrop-blur-xl gpu-accelerated"
                     aria-label={social.label}
                   >
                     {social.icon}
@@ -414,13 +441,14 @@ export default function ProductPage() {
       </section>
 
       {/* ================= SERVICES PAGE CONTENT ================= */}
-      <section id="solutions" className="relative py-12 md:py-24 bg-background text-black overflow-hidden">
+      <section id="solutions" className="relative py-12 md:py-24 bg-background text-black overflow-hidden gpu-accelerated">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-6xl font-bold">Solutions Portfolio</h2>
+            <h2 className="text-3xl md:text-6xl font-bold tracking-tighter">Solutions Portfolio</h2>
+            <p className="text-zinc-400 font-bold uppercase tracking-[0.4em] mt-4 text-[10px]">Enterprise Infrastructure Matrix</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
             {[
               {
                 title: "1. Automated Fare Collection System",
@@ -441,18 +469,18 @@ export default function ProductPage() {
             ].map((service, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -10, borderColor: "rgba(255, 107, 0, 0.5)" }}
+                transition={{ delay: i * 0.1, type: "spring", damping: 20 }}
+                whileHover={{ y: -12 }}
                 viewport={{ once: true }}
-                className="p-6 md:p-8 rounded-2xl bg-gray-50 border border-zinc-200 flex flex-col items-start gap-3 md:gap-4 transition-all duration-300 shadow-sm hover:shadow-xl"
+                className="p-8 md:p-10 rounded-[40px] bg-zinc-50 border border-zinc-100 flex flex-col items-start gap-6 transition-all duration-500 shadow-sm hover:shadow-2xl hover:bg-white gpu-accelerated group cursor-pointer"
               >
-                <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-600 font-bold text-sm md:text-base">
+                <div className="h-14 w-14 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-600 font-black text-xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-500">
                   {i + 1}
                 </div>
-                <h3 className="text-lg md:text-xl font-bold text-neutral-900">{service.title.split('. ')[1]}</h3>
-                <p className="text-neutral-600 leading-relaxed text-xs md:text-sm">
+                <h3 className="text-xl md:text-2xl font-black text-zinc-900 tracking-tight leading-none italic uppercase">{service.title.split('. ')[1]}</h3>
+                <p className="text-neutral-500 leading-relaxed font-bold text-sm">
                   {service.desc}
                 </p>
               </motion.div>
@@ -462,68 +490,76 @@ export default function ProductPage() {
       </section>
 
       {/* ================= TECHNOLOGY OVERVIEW SECTION ================= */}
-      <section className="relative py-12 md:py-24 bg-primary text-zinc-950 border-y border-primary/20 overflow-hidden text-center">
+      <section className="relative py-12 md:py-24 bg-primary text-zinc-950 border-y border-primary/20 overflow-hidden text-center gpu-accelerated">
         <div className="container mx-auto px-6 max-w-4xl">
-          <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white">Next-Generation Infrastructure</h2>
-          <p className="text-lg md:text-xl text-white/90 mb-12">
+          <h2 className="text-3xl md:text-6xl font-bold mb-8 text-white tracking-tighter">Next-Gen Infrastructure</h2>
+          <p className="text-lg md:text-2xl text-white/90 mb-12 font-bold leading-relaxed">
             JEFFBEN Systems leverages a military-grade technology stack to ensure unmatched reliability, performance, and scalability across large-scale public transit networks:
           </p>
 
           <div className="flex flex-wrap justify-center gap-4">
             {["Web & Mobile Applications", "GPS-based tracking", "Cloud-based data systems", "Secure QR code technology", "Real-time information processing"].map((tech, i) => (
-              <div key={i} className="px-6 py-3 rounded-full bg-white/10  border border-white/20  text-white  font-semibold shadow-sm">
+              <motion.div 
+                key={i} 
+                whileHover={{ scale: 1.05, y: -4 }}
+                className="px-8 py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-black uppercase tracking-widest text-xs shadow-xl gpu-accelerated"
+              >
                 {tech}
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ================= CONTACT US PAGE CONTENT ================= */}
-      <section className="flex flex-col items-center justify-center py-16 md:py-32 text-center px-6 bg-background text-black">
-        <h3 className="text-3xl md:text-5xl font-bold">
+      <section className="flex flex-col items-center justify-center py-20 md:py-40 text-center px-6 bg-background text-black gpu-accelerated">
+        <motion.h3 
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          className="text-3xl md:text-6xl font-black tracking-tighter leading-none italic uppercase"
+        >
           Strategic Institutional Partnerships
-        </h3>
+        </motion.h3>
 
-        <p className="mt-6 max-w-xl text-neutral-600 text-lg">
+        <p className="mt-8 max-w-2xl text-neutral-500 text-lg md:text-xl font-bold leading-relaxed">
           We invite transit authorities, municipal government bodies, and state-level fleet operators to initiate high-level collaboration on the future of regional infrastructure.
         </p>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4 px-4">
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-4 md:gap-6 px-4">
           {[
-            { icon: <Youtube className="w-5 h-5" />, href: "https://youtube.com/@jeffbenofficial?si=46pT3R8BLOVA9AFP", label: "YouTube" },
-            { icon: <Mail className="w-5 h-5" />, href: "mailto:jeffbenofficial1@gmail.com", label: "Email" },
-            { icon: <span className="font-bold">Facebook</span>, href: "https://www.facebook.com/share/1C7WBtFHeS/", label: "Facebook" }
+            { icon: <Youtube className="w-6 h-6" />, href: "https://youtube.com/@jeffbenofficial?si=46pT3R8BLOVA9AFP", label: "YouTube" },
+            { icon: <Mail className="w-6 h-6" />, href: "mailto:jeffbenofficial1@gmail.com", label: "Email" },
+            { icon: <span className="font-black text-xl px-1">f</span>, href: "https://www.facebook.com/share/1C7WBtFHeS/", label: "Facebook" }
           ].map((social, i) => (
             <motion.a
               key={i}
               href={social.href}
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.1, y: -2 }}
+              whileHover={{ scale: 1.1, y: -4, backgroundColor: "#fff", borderColor: "#EA580C" }}
               whileTap={{ scale: 0.95 }}
-              className="p-3 sm:p-4 rounded-2xl bg-gray-50 border border-zinc-200 text-neutral-600 hover:text-orange-600 transition-colors shadow-sm flex items-center gap-2 font-medium text-sm sm:text-base"
+              className="p-5 rounded-[28px] bg-zinc-50 border-2 border-zinc-100 text-neutral-900 transition-all shadow-sm flex items-center gap-4 font-black uppercase tracking-tighter italic text-sm md:text-base gpu-accelerated"
               aria-label={social.label}
             >
-              {social.icon}
+              <div className="text-orange-600">{social.icon}</div>
               <span>{social.label}</span>
             </motion.a>
           ))}
         </div>
 
-        <p className="mt-8 text-neutral-400 text-sm uppercase tracking-[0.3em] font-black italic">Digital Services & Verification</p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/get-ticket" className="px-8 py-4 bg-zinc-900 text-white rounded-2xl font-bold hover:bg-orange-600 transition-all active:scale-95 shadow-lg flex items-center gap-2">
-            <Ticket className="w-5 h-5" />
+        <p className="mt-16 text-zinc-300 text-[10px] uppercase tracking-[0.6em] font-black italic">Verification Matrix v2.3</p>
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
+          <Link href="/get-ticket" className="px-12 py-6 bg-zinc-900 text-white rounded-[32px] font-black text-lg tracking-tighter hover:bg-orange-600 transition-all active:scale-95 shadow-2xl flex items-center gap-4 group">
+            <Ticket className="w-6 h-6 group-hover:rotate-12 transition-transform" />
              Get My Ticket
           </Link>
-          <Link href="/conductor" className="px-8 py-4 bg-white border border-zinc-200 text-zinc-900 rounded-2xl font-bold hover:bg-zinc-50 transition-all active:scale-95 shadow-lg flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-orange-600" />
+          <Link href="/conductor" className="px-12 py-6 bg-white border-2 border-zinc-100 text-zinc-900 rounded-[32px] font-black text-lg tracking-tighter hover:border-orange-500 transition-all active:scale-95 shadow-2xl flex items-center gap-4 group">
+            <ShieldCheck className="w-6 h-6 text-orange-600 group-hover:scale-110 transition-transform" />
              Conductor Portal
           </Link>
         </div>
 
-        <p className="mt-16 text-2xl md:text-3xl font-bold text-orange-600">
+        <p className="mt-24 text-4xl md:text-6xl font-black text-orange-600 italic tracking-tighter opacity-10 select-none">
           &quot;Advancing Transit, Enhancing Lives.&quot;
         </p>
       </section>

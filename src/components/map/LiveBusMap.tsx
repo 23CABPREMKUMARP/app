@@ -6,46 +6,14 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { createRoot, Root } from "react-dom/client";
 import { Bus, Navigation, Radar } from "lucide-react";
 
-// --- Types ---
-interface BusLocation { lat: number; lng: number; rotation: number; }
-interface BusPathNode { lat: number; lng: number; }
-interface BusStop { _id: string; stopName: string; lat: number; lng: number; type?: 'major' | 'small'; }
-interface BusData {
-  _id: string;
-  busNumber: string;
-  status: string;
-  speed: number;
-  fare: number;
-  availableSeats: number;
-  departureTime: string;
-  arrivalTime: string;
-  currentStop?: string;
-  nextStop?: string;
-  location: BusLocation;
-  routeId?: {
-    routeName: string;
-    from: string;
-    to: string;
-    path: BusPathNode[];
-    stops: BusStop[];
-  };
-}
-
-interface MapLayers {
-  showBuses: boolean;
-  showRoutes: boolean;
-  showMajorStops: boolean;
-  showSmallStops: boolean;
-  showTraffic: boolean;
-  showBuildings: boolean;
-}
+import { BusData, MapLayers } from "@/src/types";
 
 const BusMarker = React.memo(({ isRunning, busNumber, isSelected, speed, availableSeats, from, to, rotationDegrees, mapBearing }: { isRunning: boolean, busNumber: string, isSelected: boolean, speed?: number, availableSeats?: number, from?: string, to?: string, rotationDegrees?: number, mapBearing?: number }) => {
   return (
     <div className={`flex flex-col items-center justify-center relative transition-all duration-300 ${isSelected ? "z-50" : "z-10"}`}>
       {/* HUD Plate - Pure Origin-Dest Zero-Gap Interface */}
       <div className={`absolute -top-5 left-1/2 -translate-x-1/2 flex flex-col items-center transition-all duration-300 ${isSelected ? "z-50 scale-110" : "z-10 scale-90"}`}>
-          <div className={`bg-zinc-900/95 backdrop-blur-md border border-white/20 rounded-md px-2 py-0.5 shadow-2xl flex items-center gap-2 whitespace-nowrap ${isSelected ? "ring-2 ring-orange-500" : ""}`}>
+          <div className={`bg-zinc-900/95 premium-blur border border-white/20 rounded-md px-2 py-0.5 shadow-2xl flex items-center gap-2 whitespace-nowrap ${isSelected ? "ring-2 ring-orange-500" : ""}`}>
              {/* Dynamic Status Pulsar */}
              <div className={`w-1 h-1 rounded-full bg-orange-500 ${isRunning ? "animate-pulse" : ""}`} />
 
@@ -69,7 +37,10 @@ const BusMarker = React.memo(({ isRunning, busNumber, isSelected, speed, availab
       {/* 2D Bus Marker with Rapido-style Elevation */}
       <div 
         className="w-16 h-16 relative flex items-center justify-center transition-transform duration-300 ease-out"
-        style={{ transform: `scale(calc(var(--bus-scale, 1.0) * ${isSelected ? 1.4 : 1}))`, transformOrigin: 'center center' }}
+        style={{ 
+          transform: `scale(calc(var(--bus-scale, 1.0) * ${isSelected ? 1.4 : 1})) rotate(${(rotationDegrees || 0) - (mapBearing || 0)}deg)`, 
+          transformOrigin: 'center center' 
+        }}
       >
         {/* Soft Shadow Underneath (Simulated Elevation) */}
         <div className="absolute top-[80%] left-1/4 right-1/4 h-2 bg-black/40 blur-md rounded-full transform scale-x-150" />
@@ -98,13 +69,13 @@ const BusMarker = React.memo(({ isRunning, busNumber, isSelected, speed, availab
   );
 });
 
-export default function LiveBusMap({ 
+const LiveBusMap = React.memo(({ 
     onBusClick, buses, selectedBusId, layers, onUserLocationUpdate,
     userLocation, nearestBus, centerOn, navPath, navStats
 }: { 
     onBusClick: (bus: any) => void, buses: BusData[], selectedBusId?: string | null, layers: MapLayers, onUserLocationUpdate?: (pos: {lat: number, lng: number}) => void,
     userLocation?: {lat: number, lng: number} | null, nearestBus?: any, centerOn?: any, navPath?: any, navStats?: any
-}) {
+}) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const busMarkers = useRef<{ [key: string]: { marker: maplibregl.Marker, root: Root, isRunning: boolean, isSelected: boolean } }>({});
@@ -282,7 +253,7 @@ export default function LiveBusMap({
   // Update Polyline
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded) return;
+    if (!map || !mapLoaded || !map.getStyle()) return;
     const routeFeatures = !layers.showRoutes ? [] : buses.filter(b => b.routeId?.path && b.routeId.path.length >= 2).map(bus => ({
       type: "Feature",
       properties: {
@@ -290,17 +261,19 @@ export default function LiveBusMap({
       },
       geometry: { type: "LineString", coordinates: bus.routeId!.path.map(p => [p.lng, p.lat]) }
     }));
-    const s = map.getSource("routes") as maplibregl.GeoJSONSource;
-    if (s) s.setData({ type: "FeatureCollection", features: routeFeatures } as any);
+    
+    try {
+      const s = map.getSource("routes") as maplibregl.GeoJSONSource;
+      if (s) s.setData({ type: "FeatureCollection", features: routeFeatures } as any);
 
-    // Update Live Navigation Paths
-    const navSource = map.getSource("nav-routes") as maplibregl.GeoJSONSource;
-    if (navSource) {
-      if (navPath) {
-        navSource.setData({
-          type: "FeatureCollection",
-          features: [{ type: "Feature", properties: {}, geometry: navPath }]
-        } as any);
+      // Update Live Navigation Paths
+      const navSource = map.getSource("nav-routes") as maplibregl.GeoJSONSource;
+      if (navSource) {
+        if (navPath) {
+          navSource.setData({
+            type: "FeatureCollection",
+            features: [{ type: "Feature", properties: {}, geometry: navPath }]
+          } as any);
         
         // Auto-center and perfectly frame the user's nav path on screen
         if (navPath.coordinates && navPath.coordinates.length > 0) {
@@ -311,6 +284,9 @@ export default function LiveBusMap({
       } else {
         navSource.setData({ type: "FeatureCollection", features: [] } as any);
       }
+    }
+    } catch (error) {
+      console.warn("Map layer update error:", error);
     }
   }, [buses, mapLoaded, selectedBusId, navPath, layers.showRoutes]);
 
@@ -500,4 +476,6 @@ export default function LiveBusMap({
       )}
     </div>
   );
-}
+});
+
+export default LiveBusMap;

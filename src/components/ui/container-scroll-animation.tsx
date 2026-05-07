@@ -15,10 +15,8 @@ export const ContainerScroll = ({
         target: containerRef,
     });
     const [isMobile, setIsMobile] = React.useState(false);
-    const [mounted, setMounted] = React.useState(false);
 
     React.useEffect(() => {
-        setMounted(true);
         const checkMobile = () => {
             setIsMobile(window.innerWidth <= 768);
         };

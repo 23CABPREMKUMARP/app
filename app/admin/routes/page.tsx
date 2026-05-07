@@ -20,7 +20,7 @@ import {
   Layers,
   Zap
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 const mockRoutes = [
   { id: "R-101", name: "Corridor Alpha", from: "Coimbatore", to: "Avinashi", stops: 12, distance: "45km", time: "1h 15m", buses: 4, status: "Active" },

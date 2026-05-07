@@ -20,7 +20,7 @@ import {
   MoreVertical,
   X
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 export default function AdminReportsPage() {
   return (

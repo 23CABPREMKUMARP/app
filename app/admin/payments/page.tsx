@@ -20,7 +20,7 @@ import {
   ShieldCheck,
   X
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 const mockPayments = [
   { id: "TX-90231", user: "Prem Kumar", booking: "JEFF-2A5F", amount: "₹ 450", method: "UPI / PhonePe", status: "Success", date: "Today, 10:12 AM" },

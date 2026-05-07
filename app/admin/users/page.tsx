@@ -20,7 +20,7 @@ import {
   Mail,
   Phone
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 const mockUsers = [
   { id: "USR-A123", name: "Prem Kumar", email: "prem@matrix.com", phone: "+91 90033 12345", bookings: 12, spent: "₹ 5,400", status: "Active", level: "Elite Platinum" },

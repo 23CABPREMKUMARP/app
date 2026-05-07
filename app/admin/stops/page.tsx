@@ -19,7 +19,7 @@ import {
   Anchor,
   Wind
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 const mockStops = [
   { id: "STP-001", name: "Coimbatore Junction Hub", route: "Corridor Alpha", type: "Major", lat: "11.0168", lng: "76.9558", boarding: true, drop: true, status: "Active" },

@@ -20,7 +20,7 @@ import {
   Save,
   ShieldAlert
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 const mockDrivers = [
   { id: "DRV-001", name: "Senthil Kumar", phone: "+91 98765 43210", license: "TN-38-2015-0001", bus: "TN-38-AM-1111", status: "Active", trips: 450, rating: 4.8 },

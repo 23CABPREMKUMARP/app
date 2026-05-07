@@ -19,7 +19,7 @@ import {
   Settings2,
   Maximize2
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 const activeBuses = [
   { id: "TN-38-AM-1111", route: "CBE → AVIN", speed: "58 km/h", fuel: "82%", signal: "Strong", load: "14/40", status: "Optimal" },

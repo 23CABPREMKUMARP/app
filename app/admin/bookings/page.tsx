@@ -21,7 +21,7 @@ import {
   Zap,
   Printer
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
