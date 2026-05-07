@@ -3,6 +3,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)', 
   '/sign-up(.*)',
+  '/scan',
   '/manifest.webmanifest',
   '/logo2.png',
   '/hero-logo.png',
@@ -11,6 +12,15 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+  // Hard bypass for manifest and static assets to prevent 401s
+  if (
+    request.nextUrl.pathname === '/manifest.webmanifest' || 
+    request.nextUrl.pathname.endsWith('.png') ||
+    request.nextUrl.pathname.endsWith('.ico')
+  ) {
+    return;
+  }
+
   if (!isPublicRoute(request)) {
     await auth.protect();
   }
