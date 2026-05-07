@@ -54,7 +54,7 @@ export default function ScanScreen({ navigation }: any) {
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
                 <X color="#fff" size={24} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Scan Bus QR</Text>
+              <Text style={styles.headerTitle}>Scan to Book</Text>
               <TouchableOpacity onPress={() => setTorch(!torch)} style={styles.iconBtn}>
                 <Zap color={torch ? "#EAB308" : "#fff"} size={24} fill={torch ? "#EAB308" : "transparent"} />
               </TouchableOpacity>

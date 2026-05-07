@@ -10,7 +10,7 @@ import { cn } from "@/src/lib/utils";
 const navItems = [
   { label: "Home", icon: Home, href: "/" },
   { label: "Track", icon: MapPin, href: "/live-map" },
-  { label: "Scan", icon: QrCode, href: "/scan", isCenter: true },
+  { label: "Scan to Book", icon: QrCode, href: "/scan", isCenter: true },
   { label: "Pass", icon: Ticket, href: "/get-ticket" },
   { label: "Trips", icon: BookOpen, href: "/my-bookings" },
 ];

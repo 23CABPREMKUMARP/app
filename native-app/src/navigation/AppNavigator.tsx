@@ -79,7 +79,7 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen 
-        name="Scan" 
+        name="Scan to Book" 
         component={ScanScreen} // Point to the new dedicated ScanScreen
         options={{
           tabBarIcon: () => <QrCode size={30} color="#fff" />,
