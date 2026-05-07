@@ -1,0 +1,48 @@
+"use client";
+
+import React from "react";
+import Image from "next/image";
+import { motion } from "framer-motion";
+
+export default function Loading() {
+  return (
+    <div className="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center p-6">
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ 
+          duration: 0.8,
+          ease: [0.22, 1, 0.36, 1]
+        }}
+        className="relative flex flex-col items-center"
+      >
+        <div className="relative w-32 h-32 mb-8">
+          <Image
+            src="/logo2.png"
+            alt="JeffBen"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
+        
+        <div className="w-48 h-1 bg-zinc-100 rounded-full overflow-hidden relative">
+          <motion.div
+            initial={{ left: "-100%" }}
+            animate={{ left: "100%" }}
+            transition={{ 
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute top-0 bottom-0 w-1/2 bg-orange-600 rounded-full"
+          />
+        </div>
+        
+        <p className="mt-6 text-zinc-400 font-bold uppercase tracking-[0.3em] text-[10px]">
+          Transit Intelligence Platform
+        </p>
+      </motion.div>
+    </div>
+  );
+}

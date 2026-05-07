@@ -114,11 +114,21 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     touch-action: manipulation;
+    overflow-x: hidden;
+    width: 100%;
   }
 
   * {
     @apply border-border outline-ring/50;
   }
+}
+
+@utility safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 @utility no-scrollbar {

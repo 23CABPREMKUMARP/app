@@ -121,8 +121,8 @@ export default function ProductPage() {
         </motion.div>
       </div>
 
-      {/* User Profile / Logout */}
-      <div className="fixed top-6 right-6 z-[60]">
+      {/* User Profile / Logout (Desktop Only) */}
+      <div className="hidden md:block fixed top-6 right-6 z-[60]">
         <UserButton 
           afterSignOutUrl="/sign-in"
           appearance={{
