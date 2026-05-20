@@ -150,6 +150,7 @@ function LiveMapContent() {
   }, [searchQuery, buses]);
 
   const watchIdRef = useRef<number | null>(null);
+  const autoBookTriggeredRef = useRef(false);
   const searchParams = useSearchParams();
 
   // --- Initial Data Load & Real-Time Security Verification Loop ---
@@ -222,6 +223,12 @@ function LiveMapContent() {
             if (found) {
               setSelectedBus((prev: any) => prev?._id === found._id ? prev : found);
               setCenterOn((prev: any) => prev ? prev : found.location);
+              
+              if (isFromCode && !autoBookTriggeredRef.current) {
+                setIsBooking(true);
+                setStep(0);
+                autoBookTriggeredRef.current = true;
+              }
             }
           }
         } else {
@@ -1247,6 +1254,12 @@ function LiveMapContent() {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                   {/* Primary CTA Stack - Promoted to top for Rapido speed */}
                   <div className="flex flex-col gap-3">
+                    <button 
+                      onClick={() => { setIsBooking(true); setStep(0); }}
+                      className="w-full h-16 bg-primary text-white rounded-[24px] font-black uppercase tracking-widest text-xs hover:bg-orange-600 transition-all shadow-xl shadow-primary/30 active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      Book Ticket
+                    </button>
                     <div className="grid grid-cols-2 gap-3">
                       <button 
                         onClick={() => setIsDrawerClosed(true)}
