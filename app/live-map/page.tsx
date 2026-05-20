@@ -214,7 +214,16 @@ function LiveMapContent() {
               rotation: b.location?.rotation || 0
             }
           }));
-          setBuses(matrixBuses.length > 0 ? matrixBuses : MOCK_BUSES);
+          const finalBuses = matrixBuses.length > 0 ? matrixBuses : MOCK_BUSES;
+          setBuses(finalBuses);
+          
+          if (targetBusId) {
+            const found = finalBuses.find((b: any) => b._id === targetBusId || b.busId === targetBusId);
+            if (found) {
+              setSelectedBus((prev: any) => prev?._id === found._id ? prev : found);
+              setCenterOn((prev: any) => prev ? prev : found.location);
+            }
+          }
         } else {
           setBuses(MOCK_BUSES);
         }

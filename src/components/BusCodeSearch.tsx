@@ -111,9 +111,9 @@ export const BusCodeSearch = ({ onScanClick, compact = false }: BusCodeSearchPro
               <button
                 type="submit"
                 disabled={isLoading || !busCode}
-                className="h-full px-6 bg-zinc-950 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:bg-zinc-800 transition-all disabled:opacity-50 active:scale-95 shadow-lg shadow-black/10"
+                className="h-full px-4 w-14 justify-center bg-zinc-950 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center hover:bg-zinc-800 transition-all disabled:opacity-50 active:scale-95 shadow-lg shadow-black/10"
               >
-                {isLoading ? <Loader2 size={16} className="animate-spin" /> : <>Identify <ArrowRight size={14} /></>}
+                {isLoading ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={18} />}
               </button>
             </div>
             

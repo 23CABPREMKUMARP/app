@@ -101,10 +101,16 @@ HomeLoader.displayName = "HomeLoader";
 export default function MobileDashboard() {
   const router = useRouter();
   const { user } = useUser();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('hasSeenLoader');
+    }
+    return true;
+  });
   const [buses, setBuses] = useState<any[]>([]);
   const [walletBalance, setWalletBalance] = useState("250.00");
   const [activeBookingsCount, setActiveBookingsCount] = useState(0);
+  const [totalSpent, setTotalSpent] = useState(0);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationText, setNotificationText] = useState({ title: "Welcome to Digi Bus!", message: "Your journey begins here." });
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -114,6 +120,7 @@ export default function MobileDashboard() {
   const [address, setAddress] = useState("Coimbatore, TN");
   const [addressInput, setAddressInput] = useState("Coimbatore, TN");
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [showPassModal, setShowPassModal] = useState(false);
 
   useEffect(() => {
     const savedAddress = localStorage.getItem("passengerAddress");
@@ -121,7 +128,10 @@ export default function MobileDashboard() {
       setAddress(savedAddress);
       setAddressInput(savedAddress);
     }
-    const timer = setTimeout(() => setIsLoading(false), 3000);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      if (typeof window !== 'undefined') sessionStorage.setItem('hasSeenLoader', 'true');
+    }, 3000);
     
     const fetchBusesData = async () => {
       try {
@@ -147,6 +157,8 @@ export default function MobileDashboard() {
           if (Array.isArray(bookings)) {
             const confirmedPaid = bookings.filter((b: any) => b.paymentStatus === "Paid");
             setActiveBookingsCount(confirmedPaid.length);
+            const spent = confirmedPaid.reduce((sum: number, b: any) => sum + (Number(b.ticketPrice) || Number(b.amount) || Number(b.totalAmount) || 0), 0);
+            setTotalSpent(spent);
             
             // Check if any of passenger's booked buses are active
             const activeBus = confirmedPaid.find((b: any) => 
@@ -348,18 +360,26 @@ export default function MobileDashboard() {
             </motion.div>
           )}
 
-          {/* Ad/Promo Banner Carousel */}
-          <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white relative">
+          {/* Jeffben Pass Premium Teaser */}
+          <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-md relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-200/10 to-transparent opacity-50"></div>
+            <div className="p-5 text-white relative z-10 flex items-center justify-between">
               <div className="w-2/3">
-                <p className="text-xs font-semibold text-blue-200 mb-1">JEFFBEN EXCLUSIVE</p>
-                <h3 className="text-lg font-bold leading-tight mb-2">Flat ₹50 Off on First Bus Pass</h3>
-                <Link href="/get-ticket" className="inline-block bg-white text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full">
-                  Claim Now
-                </Link>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Sparkles size={14} className="text-amber-400" />
+                  <p className="text-[10px] font-black text-amber-400 tracking-widest uppercase">Premium</p>
+                </div>
+                <h3 className="text-xl font-black tracking-tight mb-1">Jeffben Pass</h3>
+                <p className="text-xs text-slate-400 font-medium mb-3">Exclusive Memberships Coming Soon</p>
+                <div className="inline-block bg-slate-800 text-amber-400 border border-amber-400/30 text-[10px] font-black px-4 py-2 rounded-full tracking-widest uppercase">
+                  Coming Soon
+                </div>
               </div>
-              <div className="absolute right-2 bottom-0 top-0 flex items-center justify-center opacity-80">
-                <Ticket size={80} className="translate-x-4" />
+              <div className="absolute right-0 bottom-0 top-0 w-1/3 flex items-center justify-end pr-4 opacity-90 overflow-hidden">
+                <div className="w-24 h-24 bg-amber-400/20 rounded-full blur-2xl absolute -right-4"></div>
+                <div className="bg-gradient-to-br from-amber-300 to-amber-600 w-16 h-16 rounded-full flex items-center justify-center shadow-xl z-10">
+                  <Ticket size={32} className="text-slate-900" />
+                </div>
               </div>
             </div>
           </div>
@@ -367,7 +387,7 @@ export default function MobileDashboard() {
           {/* Quick Actions (Money Transfers / Primary Services) */}
           <div className="bg-white rounded-2xl p-4 shadow-sm">
             <h3 className="text-[13px] font-bold text-slate-800 mb-4 px-1">Transit & Payments</h3>
-            <div className="grid grid-cols-3 gap-x-1 gap-y-4 text-center">
+            <div className="grid grid-cols-4 gap-x-1 gap-y-4 text-center">
               <button 
                 onClick={() => setShowBusCodeModal(true)} 
                 className="flex flex-col items-center gap-2 cursor-pointer bg-transparent border-none outline-none focus:outline-none"
@@ -391,6 +411,16 @@ export default function MobileDashboard() {
                 </div>
                 <span className="text-[9px] font-semibold text-slate-700 leading-tight">Search<br/>Routes</span>
               </Link>
+
+              <button 
+                onClick={() => setShowPassModal(true)} 
+                className="flex flex-col items-center gap-2 cursor-pointer bg-transparent border-none outline-none focus:outline-none"
+              >
+                <div className="w-11 h-11 bg-[#FF9933] rounded-xl flex items-center justify-center shadow-md text-white mx-auto">
+                  <Ticket size={18} />
+                </div>
+                <span className="text-[9px] font-semibold text-slate-700 leading-tight">View<br/>Pass</span>
+              </button>
             </div>
           </div>
 
@@ -404,7 +434,7 @@ export default function MobileDashboard() {
                   <span className="text-[11px] font-semibold truncate">Digi Bus Stand App</span>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-slate-900 leading-tight">₹2,000</p>
+                  <p className="text-lg font-bold text-slate-900 leading-tight">₹{totalSpent.toLocaleString('en-IN')}</p>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mt-0.5">Amount used to purchase ticket</span>
                 </div>
               </div>
@@ -591,6 +621,118 @@ export default function MobileDashboard() {
                     setShowBusCodeModal(false);
                     router.push('/live-map?action=scan');
                   }} />
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Jeffben Pass Modal */}
+        <AnimatePresence>
+          {showPassModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[250] bg-slate-900/60 backdrop-blur-md flex items-end justify-center"
+            >
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="w-full max-w-md bg-slate-950 rounded-t-[32px] p-6 shadow-2xl space-y-6 max-h-[85vh] overflow-y-auto pb-10 relative text-left border-t border-amber-900/30"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-400/20 rounded-xl flex items-center justify-center">
+                      <Sparkles size={20} className="text-amber-400" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="text-base font-bold text-white">Jeffben Pass</h3>
+                      <p className="text-[10px] text-amber-400/80 font-bold uppercase tracking-wider">Premium Memberships</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowPassModal(false)}
+                    className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-full font-bold text-xs cursor-pointer border-none outline-none focus:outline-none"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="text-center py-2">
+                    <p className="text-sm text-slate-300 font-medium">Coming soon. Unlock exclusive benefits, priority booking, and unlimited transit across the Digi Bus network.</p>
+                  </div>
+                  
+                  {/* Tiers */}
+                  <div className="space-y-3">
+                    {/* Platinum */}
+                    <div className="bg-gradient-to-br from-slate-200 to-slate-400 p-[1px] rounded-2xl">
+                      <div className="bg-slate-900 rounded-2xl p-4 h-full flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center shadow-inner shrink-0">
+                          <Zap size={24} className="text-slate-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-black text-white tracking-wide">PLATINUM</h4>
+                          <p className="text-[10px] text-slate-400 font-medium">Unlimited free rides • Priority boarding</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-black bg-slate-800 text-slate-300 px-2 py-1 rounded-md uppercase">Soon</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Gold */}
+                    <div className="bg-gradient-to-br from-amber-200 to-amber-500 p-[1px] rounded-2xl">
+                      <div className="bg-slate-900 rounded-2xl p-4 h-full flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center shadow-inner shrink-0">
+                          <Sparkles size={24} className="text-amber-900" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-black text-white tracking-wide">GOLD</h4>
+                          <p className="text-[10px] text-slate-400 font-medium">50 rides/mo • Free cancellations</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-black bg-slate-800 text-slate-300 px-2 py-1 rounded-md uppercase">Soon</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Silver */}
+                    <div className="bg-gradient-to-br from-zinc-300 to-zinc-500 p-[1px] rounded-2xl">
+                      <div className="bg-slate-900 rounded-2xl p-4 h-full flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-zinc-300 flex items-center justify-center shadow-inner shrink-0">
+                          <ShieldCheck size={24} className="text-zinc-700" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-black text-white tracking-wide">SILVER</h4>
+                          <p className="text-[10px] text-slate-400 font-medium">20 rides/mo • Standard support</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-black bg-slate-800 text-slate-300 px-2 py-1 rounded-md uppercase">Soon</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Bronze */}
+                    <div className="bg-gradient-to-br from-orange-400 to-orange-700 p-[1px] rounded-2xl">
+                      <div className="bg-slate-900 rounded-2xl p-4 h-full flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-inner shrink-0">
+                          <User size={24} className="text-orange-950" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-black text-white tracking-wide">BRONZE</h4>
+                          <p className="text-[10px] text-slate-400 font-medium">Pay as you go • Reward points</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-black bg-slate-800 text-slate-300 px-2 py-1 rounded-md uppercase">Soon</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
