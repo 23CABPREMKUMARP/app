@@ -758,7 +758,7 @@ function LiveMapContent() {
                       setShowNearbyBusesDrawer(true);
                     },
                     (err) => {
-                      console.error("Location error", err);
+                      console.warn("Location services unavailable, using fallback coordinates.");
                       setUserLocation({ lat: 11.0168, lng: 76.9558 });
                       localStorage.setItem('hasLocationPermission', 'true');
                       setHasLocationPermission('granted');
