@@ -401,6 +401,11 @@ function LiveMapContent() {
     const action = searchParams.get("action");
     if (action === "scan") {
       setIsScanning(true);
+    } else if (action === "nearby") {
+      setShowNearbyOnly(true);
+      if (!isLiveLocationOn) {
+        toggleLiveLocation();
+      }
     }
   }, [searchParams]);
 

@@ -412,12 +412,12 @@ export default function MobileDashboard() {
                 <span className="text-[9px] font-semibold text-slate-700 leading-tight">Search<br/>Routes</span>
               </Link>
 
-              <div className="flex flex-col items-center gap-2 opacity-50 cursor-not-allowed">
-                <div className="w-11 h-11 bg-slate-200 rounded-xl flex items-center justify-center shadow-sm text-slate-400 mx-auto">
-                  <Ticket size={18} />
+              <Link href="/live-map?action=nearby" className="flex flex-col items-center gap-2 cursor-pointer">
+                <div className="w-11 h-11 bg-[#FF9933] rounded-xl flex items-center justify-center shadow-md text-white mx-auto">
+                  <MapPin size={18} />
                 </div>
-                <span className="text-[9px] font-semibold text-slate-500 leading-tight">Coming<br/>Soon</span>
-              </div>
+                <span className="text-[9px] font-semibold text-slate-700 leading-tight">Nearby<br/>Buses</span>
+              </Link>
             </div>
           </div>
 
