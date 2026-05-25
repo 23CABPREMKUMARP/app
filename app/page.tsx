@@ -371,7 +371,7 @@ export default function MobileDashboard() {
                   <Sparkles size={14} className="text-amber-400" />
                   <p className="text-[10px] font-black text-amber-400 tracking-widest uppercase">Premium</p>
                 </div>
-                <h3 className="text-xl font-black tracking-tight mb-1">Town Bus Memberships</h3>
+                <h3 className="text-xl font-black tracking-tight mb-1">Bus Memberships</h3>
                 <p className="text-xs text-slate-400 font-medium mb-3">Exclusive passes coming soon</p>
                 <button 
                   onClick={() => setShowMembershipModal(true)}
@@ -851,7 +851,7 @@ export default function MobileDashboard() {
                       <Crown size={24} className="text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-slate-900">Town Bus Memberships</h3>
+                      <h3 className="text-lg font-black text-slate-900">Bus Memberships</h3>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Premium Tiers Coming Soon</p>
                     </div>
                   </div>
@@ -872,7 +872,7 @@ export default function MobileDashboard() {
                       </div>
                       <div>
                         <h4 className="font-black text-slate-700">Platinum Pass</h4>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Unlimited AC Travel</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Unlimited Travel</p>
                       </div>
                     </div>
                     <span className="text-[9px] font-black bg-slate-200 text-slate-600 px-2 py-1 rounded-full uppercase tracking-wider">Coming Soon</span>
@@ -886,7 +886,7 @@ export default function MobileDashboard() {
                       </div>
                       <div>
                         <h4 className="font-black text-amber-600">Gold Pass</h4>
-                        <p className="text-[9px] font-bold text-amber-500/70 uppercase tracking-widest">Priority Seating + AC</p>
+                        <p className="text-[9px] font-bold text-amber-500/70 uppercase tracking-widest">Priority Seating</p>
                       </div>
                     </div>
                     <span className="text-[9px] font-black bg-amber-200 text-amber-700 px-2 py-1 rounded-full uppercase tracking-wider">Coming Soon</span>
@@ -914,7 +914,7 @@ export default function MobileDashboard() {
                       </div>
                       <div>
                         <h4 className="font-black text-orange-600">Bronze Pass</h4>
-                        <p className="text-[9px] font-bold text-orange-400 uppercase tracking-widest">Weekly standard travel</p>
+                        <p className="text-[9px] font-bold text-orange-400 uppercase tracking-widest">20 Travels</p>
                       </div>
                     </div>
                     <span className="text-[9px] font-black bg-orange-200 text-orange-700 px-2 py-1 rounded-full uppercase tracking-wider">Coming Soon</span>
