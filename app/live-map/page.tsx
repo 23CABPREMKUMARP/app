@@ -166,7 +166,6 @@ function LiveMapContent() {
   const [authChecking, setAuthChecking] = useState(false);
   const [isDrawerClosed, setIsDrawerClosed] = useState(false);
   const [hasLocationPermission, setHasLocationPermission] = useState<'granted' | 'skipped' | 'pending' | 'denied'>('pending');
-  const [showNearbyBusesDrawer, setShowNearbyBusesDrawer] = useState(true);
 
   const fetchLocation = () => {
     setLocationError("");
@@ -666,7 +665,6 @@ function LiveMapContent() {
               onClick={() => {
                 if ("geolocation" in navigator) {
                   fetchLocation();
-                  setShowNearbyBusesDrawer(true);
                 }
               }}
               className="w-full bg-[#FF9933] text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-orange-600 transition-colors shadow-lg shadow-[#FF9933]/20 active:scale-95 flex items-center justify-center gap-3"
@@ -1517,136 +1515,6 @@ function LiveMapContent() {
               >
                 Dismiss
               </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Floating Nearby Buses Button (When drawer is closed) */}
-      <AnimatePresence>
-        {!showNearbyBusesDrawer && !selectedBus && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-32 right-6 z-[1000]"
-          >
-            <button
-              onClick={() => setShowNearbyBusesDrawer(true)}
-              className="w-16 h-16 bg-[#FF9933] rounded-2xl shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all border border-[#FF9933]/50 group overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-white/20 blur-xl group-hover:bg-white/30 transition-colors" />
-              <div className="relative z-10 flex flex-col items-center">
-                <Bus size={24} className="text-white mb-0.5" />
-                <span className="text-[7px] font-black text-white uppercase tracking-widest">Nearby</span>
-              </div>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Nearby Buses Bottom Sheet */}
-      <AnimatePresence>
-        {showNearbyBusesDrawer && !selectedBus && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[2000] bg-slate-950/60 backdrop-blur-sm flex items-end justify-center pointer-events-auto"
-          >
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="w-full max-w-md bg-white rounded-t-[32px] shadow-2xl flex flex-col max-h-[85vh] overflow-hidden pointer-events-auto"
-            >
-              <div className="w-full flex justify-center py-4 cursor-grab" onClick={() => setShowNearbyBusesDrawer(false)}>
-                <div className="w-12 h-1.5 bg-slate-200 rounded-full" />
-              </div>
-              
-              <div className="px-6 pb-4 border-b border-slate-50 flex items-center justify-between">
-                <div>
-                  <h3 className="font-black text-slate-900 uppercase tracking-widest text-lg">Nearby Fleet</h3>
-                  <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-0.5">Found {nearbyBuses.length} Active Vehicles</p>
-                </div>
-                <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Live Sync
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4">
-                {nearbyBuses.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-6 opacity-60 text-center px-4">
-                    {locationError ? (
-                      <>
-                        <MapPinOff size={32} className="text-red-400 mb-3 opacity-80" />
-                        <p className="text-[11px] font-black text-red-500 uppercase tracking-widest leading-relaxed mb-4">{locationError}</p>
-                        <div className="flex flex-wrap items-center justify-center gap-3">
-                          <button 
-                            onClick={fetchLocation}
-                            className="px-6 py-2 bg-red-50 text-red-600 rounded-xl border border-red-100 font-black text-xs uppercase tracking-widest hover:bg-red-100 transition-colors active:scale-95"
-                          >
-                            Retry GPS
-                          </button>
-                        </div>
-                      </>
-                    ) : !userLocation ? (
-                      <>
-                        <div className="w-8 h-8 border-4 border-slate-200 border-t-[#FF9933] rounded-full animate-spin mb-3"></div>
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Acquiring GPS Lock...</p>
-                      </>
-                    ) : (
-                      <>
-                        <MapPinOff size={32} className="text-slate-300 mb-3" />
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No buses found nearby</p>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  nearbyBuses.map((bus: any, idx: number) => {
-                    const isNearest = idx === 0;
-                    return (
-                      <div key={bus._id} className={`bg-slate-50 border ${isNearest ? 'border-[#FF9933] shadow-md' : 'border-slate-100'} rounded-[24px] p-5 flex items-center justify-between gap-4 relative overflow-hidden transition-all hover:bg-slate-100`}>
-                        {isNearest && (
-                          <div className="absolute top-0 right-0 bg-[#FF9933] text-white text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-xl shadow-sm">
-                            Nearest Bus
-                          </div>
-                        )}
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-black text-2xl uppercase text-slate-900 tracking-tighter">{bus.busNumber}</span>
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide truncate max-w-[180px] mb-3">
-                            {bus.routeId?.routeName || "Scanning route..."}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-black tracking-widest uppercase text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm inline-flex items-center gap-1.5">
-                              <MapPin size={12} className="text-[#FF9933]" /> {bus.distance.toFixed(1)} km
-                            </span>
-                            <span className="text-[9px] font-black tracking-wider uppercase text-slate-400 ml-1">Status: <span className="text-emerald-500">{bus.status}</span></span>
-                          </div>
-                        </div>
-                        
-                        <button 
-                          onClick={() => {
-                            setShowNearbyBusesDrawer(false);
-                            // Pan map directly to this bus
-                            setCenterOn({ lat: bus.location.lat, lng: bus.location.lng });
-                            setSelectedBus(bus);
-                            setIsDrawerClosed(true);
-                            startNavigation(bus);
-                          }}
-                          className={`flex-shrink-0 w-16 h-16 ${isNearest ? 'bg-[#FF9933] text-white shadow-xl shadow-[#FF9933]/20' : 'bg-slate-900 text-white'} rounded-[20px] font-black text-[10px] uppercase tracking-widest flex items-center justify-center hover:scale-105 transition-all active:scale-95`}
-                        >
-                          <Navigation size={20} />
-                        </button>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
             </motion.div>
           </motion.div>
         )}
