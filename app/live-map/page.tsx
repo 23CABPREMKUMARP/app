@@ -145,7 +145,7 @@ function LiveMapContent() {
     showTraffic: false,
     showBuildings: false
   });
-  const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>({ lat: 11.0168, lng: 76.9558 }); // Fallback for local testing
+  const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
   const [isLiveLocationOn, setIsLiveLocationOn] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [showNearbyOnly, setShowNearbyOnly] = useState(false);
@@ -394,9 +394,16 @@ function LiveMapContent() {
 
   useEffect(() => {
     const action = searchParams.get("action");
+    const lat = searchParams.get("lat");
+    const lng = searchParams.get("lng");
+    
     if (action === "scan") {
       setIsScanning(true);
     } else if (action === "nearby") {
+      if (lat && lng) {
+        setUserLocation({ lat: parseFloat(lat), lng: parseFloat(lng) });
+        setCenterOn({ lat: parseFloat(lat), lng: parseFloat(lng) } as any);
+      }
       setShowNearbyOnly(true);
       if (!isLiveLocationOn) {
         toggleLiveLocation();

@@ -116,6 +116,7 @@ export default function MobileDashboard() {
   const [addressInput, setAddressInput] = useState("Coimbatore, TN");
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showPassModal, setShowPassModal] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   useEffect(() => {
     // Immediate check to skip loader if already seen
@@ -412,12 +413,40 @@ export default function MobileDashboard() {
                 <span className="text-[9px] font-semibold text-slate-700 leading-tight">Search<br/>Routes</span>
               </Link>
 
-              <Link href="/live-map?action=nearby" className="flex flex-col items-center gap-2 cursor-pointer">
-                <div className="w-11 h-11 bg-[#FF9933] rounded-xl flex items-center justify-center shadow-md text-white mx-auto">
-                  <MapPin size={18} />
+              <button 
+                onClick={() => {
+                  setIsLocating(true);
+                  if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        setIsLocating(false);
+                        router.push(`/live-map?action=nearby&lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`);
+                      },
+                      (err) => {
+                        setIsLocating(false);
+                        alert("Unable to fetch location. Please enable GPS and allow location access.");
+                      },
+                      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                    );
+                  } else {
+                    setIsLocating(false);
+                    alert("Geolocation is not supported.");
+                  }
+                }}
+                disabled={isLocating}
+                className="flex flex-col items-center gap-2 cursor-pointer bg-transparent border-none outline-none focus:outline-none"
+              >
+                <div className="w-11 h-11 bg-[#FF9933] rounded-xl flex items-center justify-center shadow-md text-white mx-auto relative overflow-hidden">
+                  {isLocating ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <MapPin size={18} />
+                  )}
                 </div>
-                <span className="text-[9px] font-semibold text-slate-700 leading-tight">Nearby<br/>Buses</span>
-              </Link>
+                <span className="text-[9px] font-semibold text-slate-700 leading-tight">
+                  {isLocating ? "Locating..." : <>Nearby<br/>Buses</>}
+                </span>
+              </button>
             </div>
           </div>
 
