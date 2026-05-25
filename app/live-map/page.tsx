@@ -560,99 +560,46 @@ function LiveMapContent() {
 
   const handlePayment = async () => {
     if (!selectedBus) return;
-    setPaymentState('preparing');
+    setPaymentState('verifying');
     setPaymentError(null);
     
     try {
       const amount = ticketQuantity * (selectedBus.fare || 1);
       
-      // 1. Create Razorpay Order
-      const orderRes = await fetch('/api/payments/create-order', {
+      const verifyRes = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({
+          busId: selectedBus._id,
+          seats: Array.from({ length: ticketQuantity }, (_, i) => `S-${i + 1}`),
+          totalAmount: amount,
+          boardingPoint,
+          destination: dropPoint,
+          passengers: [{ phone: passengerDetails.phone || "9999999999" }]
+        }),
       });
-      
-      const orderData = await orderRes.json();
-      
-      if (!orderRes.ok) throw new Error(orderData.error || 'Failed to create order');
 
-      // 2. Open Razorpay Checkout
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder",
-        amount: orderData.amount,
-        currency: "INR",
-        name: "JeffBen Systems",
-        description: `Bus Booking: ${selectedBus.busNumber}`,
-        order_id: orderData.id,
-        handler: async (response: any) => {
-          setPaymentState('verifying');
-          
-          try {
-            // 3. Verify Payment and Finalize Booking
-            const verifyRes = await fetch('/api/payments/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                bookingDetails: {
-                  busId: selectedBus._id,
-                  seats: Array.from({ length: ticketQuantity }, (_, i) => `S-${i + 1}`),
-                  totalAmount: amount,
-                  boardingPoint,
-                  destination: dropPoint,
-                  passengers: [{ phone: passengerDetails.phone || "9999999999" }]
-                }
-              }),
-            });
+      const verifyData = await verifyRes.json();
 
-            const verifyData = await verifyRes.json();
-
-            if (verifyData.success) {
-              setBookingResult(verifyData.booking);
-              setTicketId(verifyData.booking.ticketId);
-              setPaymentState('success');
-              setStep(5);
-              
-              if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                navigator.vibrate([100, 30, 100]);
-              }
-              
-              setBuses(prev => prev.map(bus => bus._id === selectedBus._id ? { ...bus, availableSeats: bus.availableSeats - ticketQuantity } : bus));
-            } else {
-              throw new Error(verifyData.message || 'Payment verification failed');
-            }
-          } catch (err: any) {
-            setPaymentState('failed');
-            setPaymentError(err.message || "Failed to verify payment");
-            setStep(6);
-            console.error("Verification Error:", err);
-          }
-        },
-        modal: {
-          ondismiss: function() {
-            setPaymentState('failed');
-            setPaymentError("Payment cancelled by user");
-            setStep(6);
-          }
-        },
-        prefill: {
-          contact: passengerDetails.phone || "9999999999",
-        },
-        theme: {
-          color: "#18181b",
-        },
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
-    } catch (error: any) {
+      if (verifyData.success) {
+        setBookingResult(verifyData.booking);
+        setTicketId(verifyData.booking.ticketId);
+        setPaymentState('success');
+        setStep(5);
+        
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate([100, 30, 100]);
+        }
+        
+        setBuses(prev => prev.map(bus => bus._id === selectedBus._id ? { ...bus, availableSeats: bus.availableSeats - ticketQuantity } : bus));
+      } else {
+        throw new Error(verifyData.message || 'Booking generation failed');
+      }
+    } catch (err: any) {
       setPaymentState('failed');
-      setPaymentError(error.message || "Failed to initialize payment");
+      setPaymentError(err.message || "Failed to generate ticket");
       setStep(6);
-      console.error("Payment Initialization Error:", error);
+      console.error("Booking Error:", err);
     }
   };
 
