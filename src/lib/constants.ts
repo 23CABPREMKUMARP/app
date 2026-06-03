@@ -48,7 +48,7 @@
     ]
   };
 
-export const MOCK_BUSES: BusData[] = [
+export const MOCK_BUSES = [
   {
     _id: "bus1",
     busNumber: "TN-38-EF-2025",

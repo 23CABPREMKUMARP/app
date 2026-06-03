@@ -160,7 +160,7 @@ function LiveMapContent() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [hideNearestCard, setHideNearestCard] = useState(false);
-  const [paymentState, setPaymentState] = useState<'idle' | 'preparing' | 'checkout' | 'verifying' | 'success' | 'failed'>('idle');
+  const [paymentState, setPaymentState] = useState<'idle' | 'preparing' | 'checkout' | 'processing' | 'verifying' | 'success' | 'failed'>('idle');
   const [bookingResult, setBookingResult] = useState<any>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [isAuthorizedToTrack, setIsAuthorizedToTrack] = useState(true);
