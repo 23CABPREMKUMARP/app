@@ -90,7 +90,7 @@ export const IntelligentPhoneInput: React.FC<IntelligentPhoneInputProps> = ({
                 initial={{ opacity: 0, x: 5 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -5 }}
-                className="absolute left-0 text-zinc-300 font-bold text-xl pointer-events-none"
+                className="absolute left-0 text-zinc-300 font-bold text-base whitespace-nowrap pointer-events-none"
               >
                 {placeholder}
               </motion.span>

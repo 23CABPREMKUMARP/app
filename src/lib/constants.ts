@@ -1,4 +1,52 @@
-import { BusData } from "../types";
+  const MOCK_BUSES_ROUTE_GW = {
+    routeName: "Gandhipuram → Walayar",
+    from: "Gandhipuram",
+    to: "Walayar",
+    path: [
+      { lat: 11.0168, lng: 76.9639 }, { lat: 11.0084, lng: 76.9698 }, { lat: 11.0065, lng: 76.9723 },
+      { lat: 11.0051, lng: 76.9744 }, { lat: 11.0040, lng: 76.9748 }, { lat: 11.0022, lng: 76.9734 },
+      { lat: 10.9997, lng: 76.9680 }, { lat: 10.9975, lng: 76.9650 }, { lat: 10.9940, lng: 76.9585 },
+      { lat: 10.9877, lng: 76.9616 }, { lat: 10.9780, lng: 76.9660 }, { lat: 10.9720, lng: 76.9665 },
+      { lat: 10.9631, lng: 76.9575 }, { lat: 10.9576, lng: 76.9538 }, { lat: 10.9500, lng: 76.9480 },
+      { lat: 10.9450, lng: 76.9450 }, { lat: 10.9380, lng: 76.9420 }, { lat: 10.9300, lng: 76.9380 },
+      { lat: 10.9250, lng: 76.9350 }, { lat: 10.9210, lng: 76.9325 }, { lat: 10.9160, lng: 76.9295 },
+      { lat: 10.9080, lng: 76.9250 }, { lat: 10.9050, lng: 76.9230 }, { lat: 10.8980, lng: 76.9180 },
+      { lat: 10.8930, lng: 76.9150 }, { lat: 10.8880, lng: 76.9120 }, { lat: 10.8750, lng: 76.9050 },
+      { lat: 10.8550, lng: 76.8850 }, { lat: 10.8400, lng: 76.8700 }, { lat: 10.8250, lng: 76.8500 }
+    ],
+    stops: [
+      { _id: "gw1", stopName: "Gandhipuram Town Bus Stand", lat: 11.0168, lng: 76.9639, type: 'major' },
+      { _id: "gw2", stopName: "Womens Polytechnic", lat: 11.0084, lng: 76.9698, type: 'small' },
+      { _id: "gw3", stopName: "R.T.O", lat: 11.0065, lng: 76.9723, type: 'small' },
+      { _id: "gw4", stopName: "Stanes School", lat: 11.0051, lng: 76.9744, type: 'small' },
+      { _id: "gw5", stopName: "Anna Statue", lat: 11.0040, lng: 76.9748, type: 'small' },
+      { _id: "gw6", stopName: "D.S.P Office", lat: 11.0022, lng: 76.9734, type: 'small' },
+      { _id: "gw7", stopName: "Collector Office", lat: 10.9997, lng: 76.9680, type: 'small' },
+      { _id: "gw8", stopName: "Railway Station", lat: 10.9975, lng: 76.9650, type: 'major' },
+      { _id: "gw9", stopName: "Town Hall", lat: 10.9940, lng: 76.9585, type: 'major' },
+      { _id: "gw10", stopName: "Ukkadam", lat: 10.9877, lng: 76.9616, type: 'major' },
+      { _id: "gw11", stopName: "Karumbukadai", lat: 10.9780, lng: 76.9660, type: 'small' },
+      { _id: "gw12", stopName: "Athupalam", lat: 10.9720, lng: 76.9665, type: 'small' },
+      { _id: "gw13", stopName: "Kuniyamuthur High School", lat: 10.9631, lng: 76.9575, type: 'small' },
+      { _id: "gw14", stopName: "Kuniyamuthur", lat: 10.9576, lng: 76.9538, type: 'major' },
+      { _id: "gw15", stopName: "Nehru College", lat: 10.9500, lng: 76.9480, type: 'small' },
+      { _id: "gw16", stopName: "Edayarpalayam Pirivu", lat: 10.9450, lng: 76.9450, type: 'small' },
+      { _id: "gw17", stopName: "Kuniyamuthur Police Station", lat: 10.9380, lng: 76.9420, type: 'small' },
+      { _id: "gw18", stopName: "B.K. Pudur", lat: 10.9300, lng: 76.9380, type: 'small' },
+      { _id: "gw19", stopName: "Kovaipudur Pirivu", lat: 10.9250, lng: 76.9350, type: 'small' },
+      { _id: "gw20", stopName: "Milekal", lat: 10.9210, lng: 76.9325, type: 'small' },
+      { _id: "gw21", stopName: "Gandhi Nagar", lat: 10.9160, lng: 76.9295, type: 'small' },
+      { _id: "gw22", stopName: "Madukkarai Police Station", lat: 10.9080, lng: 76.9250, type: 'major' },
+      { _id: "gw23", stopName: "Madukkarai Union Office", lat: 10.9050, lng: 76.9230, type: 'small' },
+      { _id: "gw24", stopName: "Marappalam", lat: 10.8980, lng: 76.9180, type: 'small' },
+      { _id: "gw25", stopName: "Chettipalayam Pirivu", lat: 10.8930, lng: 76.9150, type: 'small' },
+      { _id: "gw26", stopName: "Indian Bank", lat: 10.8880, lng: 76.9120, type: 'small' },
+      { _id: "gw27", stopName: "Thirumalayampalayam Pirivu", lat: 10.8750, lng: 76.9050, type: 'small' },
+      { _id: "gw28", stopName: "K.G. Chavadi", lat: 10.8550, lng: 76.8850, type: 'major' },
+      { _id: "gw29", stopName: "Aallamara", lat: 10.8400, lng: 76.8700, type: 'small' },
+      { _id: "gw30", stopName: "Walayar (Last Stop)", lat: 10.8250, lng: 76.8500, type: 'major' }
+    ]
+  };
 
 export const MOCK_BUSES: BusData[] = [
   {
@@ -208,5 +256,61 @@ export const MOCK_BUSES: BusData[] = [
         { _id: "gw30", stopName: "Walayar (Last Stop)", lat: 10.8250, lng: 76.8500, type: 'major' }
       ]
     }
+  },
+  {
+    _id: "bus7",
+    busNumber: "TN-38-WA-2025",
+    busCode: "2025",
+    status: "Running",
+    speed: 45,
+    fare: 1,
+    availableSeats: 15,
+    departureTime: "08:30 AM",
+    arrivalTime: "10:00 AM",
+    currentStop: "Railway Station",
+    location: { lat: 10.9975, lng: 76.9650, rotation: 180 },
+    routeId: MOCK_BUSES_ROUTE_GW
+  },
+  {
+    _id: "bus8",
+    busNumber: "TN-38-WA-2026",
+    busCode: "2026",
+    status: "Running",
+    speed: 50,
+    fare: 1,
+    availableSeats: 5,
+    departureTime: "08:45 AM",
+    arrivalTime: "10:15 AM",
+    currentStop: "Kuniyamuthur",
+    location: { lat: 10.9576, lng: 76.9538, rotation: 190 },
+    routeId: MOCK_BUSES_ROUTE_GW
+  },
+  {
+    _id: "bus9",
+    busNumber: "TN-38-WA-2027",
+    busCode: "2027",
+    status: "Running",
+    speed: 40,
+    fare: 1,
+    availableSeats: 40,
+    departureTime: "09:00 AM",
+    arrivalTime: "10:30 AM",
+    currentStop: "Madukkarai Police Station",
+    location: { lat: 10.9080, lng: 76.9250, rotation: 200 },
+    routeId: MOCK_BUSES_ROUTE_GW
+  },
+  {
+    _id: "bus10",
+    busNumber: "TN-38-WA-2028",
+    busCode: "2028",
+    status: "Running",
+    speed: 55,
+    fare: 1,
+    availableSeats: 22,
+    departureTime: "09:15 AM",
+    arrivalTime: "10:45 AM",
+    currentStop: "K.G. Chavadi",
+    location: { lat: 10.8550, lng: 76.8850, rotation: 210 },
+    routeId: MOCK_BUSES_ROUTE_GW
   }
 ];

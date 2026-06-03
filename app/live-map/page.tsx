@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
-import { Bus, MapPin, MapPinOff, Navigation, User, Phone, Mail, ChevronRight, X, CreditCard, Ticket, LayoutDashboard, QrCode, Zap, Info, Shield, ShieldCheck, Clock, CheckCircle, ArrowLeft, ArrowRight, Activity, Gauge, Search, Route, Camera, Wind, RefreshCw, Download, Wallet, Banknote, CheckCircle2, AlertCircle, ShieldAlert } from "lucide-react";
+import { Bus, MapPin, MapPinOff, Navigation, User, Phone, Mail, ChevronRight, X, CreditCard, Ticket, LayoutDashboard, QrCode, Zap, Info, Shield, ShieldCheck, Clock, CheckCircle, ArrowLeft, ArrowRight, Activity, Gauge, Search, Route, Camera, Wind, RefreshCw, Download, Wallet, Banknote, CheckCircle2, AlertCircle, ShieldAlert, Package } from "lucide-react";
 import Script from "next/script";
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
@@ -134,6 +134,7 @@ function LiveMapContent() {
   const [ticketQuantity, setTicketQuantity] = useState(1);
   const [boardingPoint, setBoardingPoint] = useState("");
   const [dropPoint, setDropPoint] = useState("");
+  const [luggageType, setLuggageType] = useState('None');
   const [passengerDetails, setPassengerDetails] = useState({ phone: "", seatNumber: "" });
   const [loading, setLoading] = useState(true);
   const [showBusQR, setShowBusQR] = useState(false);
@@ -166,6 +167,8 @@ function LiveMapContent() {
   const [authChecking, setAuthChecking] = useState(false);
   const [isDrawerClosed, setIsDrawerClosed] = useState(false);
   const [hasLocationPermission, setHasLocationPermission] = useState<'granted' | 'skipped' | 'pending' | 'denied'>('pending');
+
+  const LUGGAGE_PRICES: Record<string, number> = { None: 0, Small: 1, Medium: 2, Large: 3 };
 
   const fetchLocation = () => {
     setLocationError("");
@@ -596,48 +599,114 @@ function LiveMapContent() {
   }, [showNearbyOnly, userLocation, nearestBus, isNavigating]);
 
 
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePayment = async () => {
     if (!selectedBus) return;
-    setPaymentState('verifying');
+    setPaymentState('processing');
     setPaymentError(null);
     
     try {
-      const amount = ticketQuantity * (selectedBus.fare || 1);
+      const res = await loadRazorpay();
+      if (!res) {
+        throw new Error("Failed to load Razorpay SDK. Please check your network or disable adblockers.");
+      }
+
+      const amount = ticketQuantity * (selectedBus.fare || 1) + LUGGAGE_PRICES[luggageType];
       
-      const verifyRes = await fetch('/api/bookings', {
+      const orderRes = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          busId: selectedBus._id,
-          seats: Array.from({ length: ticketQuantity }, (_, i) => `S-${i + 1}`),
-          totalAmount: amount,
-          boardingPoint,
-          destination: dropPoint,
-          passengers: [{ phone: passengerDetails.phone || "9999999999" }]
-        }),
+        body: JSON.stringify({ amount }),
       });
+      const orderData = await orderRes.json();
+      
+      if (!orderRes.ok) throw new Error(orderData.error || 'Failed to create order');
 
-      const verifyData = await verifyRes.json();
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+        amount: orderData.amount,
+        currency: "INR",
+        name: "JeffBen Systems",
+        description: `Live Bus Ticket: ${selectedBus.busNumber}`,
+        order_id: orderData.id,
+        handler: async (response: any) => {
+          setPaymentState('processing');
+          try {
+            const verifyRes = await fetch('/api/payments/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                bookingDetails: {
+                  busId: selectedBus._id,
+                  seats: Array.from({ length: ticketQuantity }, (_, i) => `S-${i + 1}`),
+                  totalAmount: amount,
+                  boardingPoint,
+                  destination: dropPoint,
+                  passengers: [{ phone: passengerDetails.phone || "9999999999" }]
+                }
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            
+            if (verifyData.success) {
+              setBookingResult(verifyData.booking);
+              setTicketId(verifyData.booking.ticketId);
+              setPaymentState('success');
+              setStep(5);
+              
+              if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                navigator.vibrate([100, 30, 100]);
+              }
+              
+              setBuses(prev => prev.map(bus => bus._id === selectedBus._id ? { ...bus, availableSeats: bus.availableSeats - ticketQuantity } : bus));
+            } else {
+              throw new Error(verifyData.message || 'Payment verification failed');
+            }
+          } catch (err: any) {
+            setPaymentState('failed');
+            setPaymentError(err.message || "Failed to verify payment");
+            setStep(6);
+          }
+        },
+        modal: {
+          ondismiss: function() {
+            setPaymentState('failed');
+            setPaymentError("Payment cancelled by user");
+            setStep(6);
+          }
+        },
+        prefill: {
+          contact: passengerDetails.phone || "9999999999",
+        },
+        theme: {
+          color: "#FF9933",
+        },
+      };
 
-      if (verifyData.success) {
-        setBookingResult(verifyData.booking);
-        setTicketId(verifyData.booking.ticketId);
-        setPaymentState('success');
-        setStep(5);
-        
-        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-          navigator.vibrate([100, 30, 100]);
-        }
-        
-        setBuses(prev => prev.map(bus => bus._id === selectedBus._id ? { ...bus, availableSeats: bus.availableSeats - ticketQuantity } : bus));
-      } else {
-        throw new Error(verifyData.message || 'Booking generation failed');
-      }
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    
     } catch (err: any) {
       setPaymentState('failed');
-      setPaymentError(err.message || "Failed to generate ticket");
+      setPaymentError(err.message || "Failed to initiate payment");
       setStep(6);
-      console.error("Booking Error:", err);
+      console.error("Payment Init Error:", err);
     }
   };
 
@@ -906,7 +975,7 @@ function LiveMapContent() {
                       onClick={() => { setIsBooking(true); setStep(2); }}
                       className="w-full h-16 bg-primary text-white rounded-[24px] font-black uppercase tracking-widest text-xs hover:bg-orange-600 transition-all shadow-xl shadow-primary/30 active:scale-95 flex items-center justify-center gap-2"
                     >
-                      Book Ticket
+                      Get Ticket
                     </button>
                     <div className="grid grid-cols-2 gap-3">
                       <button 
@@ -919,7 +988,7 @@ function LiveMapContent() {
                          onClick={() => setShowBusQR(true)}
                          className="h-16 bg-white border-2 border-zinc-100 text-zinc-900 rounded-[24px] font-black uppercase tracking-widest text-[9px] hover:border-primary transition-all flex items-center justify-center gap-2 active:scale-95"
                       >
-                        <QrCode size={14} className="text-primary" /> Matrix ID: <span className="text-primary ml-1">{selectedBus.busCode}</span>
+                        <QrCode size={14} className="text-primary" /> Bus Code: <span className="text-primary ml-1">{selectedBus.busCode}</span>
                       </button>
                     </div>
                   </div>
@@ -948,21 +1017,11 @@ function LiveMapContent() {
                   </div>
 
                   {/* Real-time Telemetry Grid with Glassmorphism */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-zinc-50/50 backdrop-blur-md rounded-[24px] p-5 flex flex-col items-center justify-center border border-zinc-100/50 group hover:border-orange-500/30 transition-all">
-                      <Clock size={16} className="text-zinc-400 mb-2 group-hover:text-primary transition-colors" />
-                      <span className="text-[10px] font-black text-zinc-900 uppercase tracking-tighter">{selectedBus.departureTime}</span>
-                      <span className="text-[8px] font-bold text-zinc-400 uppercase mt-1">Start</span>
-                    </div>
-                    <div className="bg-zinc-50/50 backdrop-blur-md rounded-[24px] p-5 flex flex-col items-center justify-center border border-zinc-100/50 group hover:border-orange-500/30 transition-all">
-                      <Gauge size={16} className="text-zinc-400 mb-2 group-hover:text-primary transition-colors" />
-                      <span className="text-[10px] font-black text-zinc-900 uppercase tracking-tighter">{selectedBus.speed} <span className="text-[7px]">KM/H</span></span>
-                      <span className="text-[8px] font-bold text-zinc-400 uppercase mt-1">Velocity</span>
-                    </div>
+                  <div className="grid grid-cols-1 gap-3">
                     <div className="bg-zinc-50/50 backdrop-blur-md rounded-[24px] p-5 flex flex-col items-center justify-center border border-zinc-100/50 group hover:border-orange-500/30 transition-all">
                       <User size={16} className="text-zinc-400 mb-2 group-hover:text-primary transition-colors" />
                       <span className="text-[10px] font-black text-zinc-900 uppercase tracking-tighter">{selectedBus.availableSeats} <span className="text-[7px]">Left</span></span>
-                      <span className="text-[8px] font-bold text-zinc-400 uppercase mt-1">Load</span>
+                      <span className="text-[8px] font-bold text-zinc-400 uppercase mt-1">Available Seats</span>
                     </div>
                   </div>
 
@@ -1004,7 +1063,7 @@ function LiveMapContent() {
                    <div className="bg-zinc-950 rounded-[32px] p-6 flex items-center justify-between relative overflow-hidden group">
                       <div className="absolute inset-y-0 left-0 w-1 bg-primary" />
                       <div className="flex flex-col gap-1">
-                         <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.3em]">Origin</span>
+                         <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.3em]">Boarding</span>
                          <span className="text-sm font-black text-white uppercase  truncate max-w-[120px]">{boardingPoint || "Select Stop"}</span>
                       </div>
                       <div className="flex-1 flex flex-col items-center px-4">
@@ -1014,7 +1073,7 @@ function LiveMapContent() {
                          </div>
                       </div>
                       <div className="flex flex-col gap-1 text-right">
-                         <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.3em]">Drop</span>
+                         <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.3em]">Destination</span>
                          <span className="text-sm font-black text-white uppercase  truncate max-w-[120px]">{dropPoint || "Choose End"}</span>
                       </div>
                    </div>
@@ -1022,16 +1081,11 @@ function LiveMapContent() {
                    {step === 2 && (
                       <div className="space-y-8">
                          {/* Integrated Step 1 Telemetry */}
-                         <div className="grid grid-cols-3 gap-3">
-                            <div className="bg-zinc-50 rounded-[22px] p-4 flex flex-col items-center border border-zinc-100">
-                               <Gauge size={14} className="text-primary mb-1" />
-                               <span className="text-[10px] font-black text-zinc-900">{selectedBus.speed} KM/H</span>
-                               <span className="text-[7px] font-bold text-zinc-400 uppercase">Velocity</span>
-                            </div>
+                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-zinc-50 rounded-[22px] p-4 flex flex-col items-center border border-zinc-100">
                                <User size={14} className="text-primary mb-1" />
                                <span className="text-[10px] font-black text-zinc-900">{selectedBus.availableSeats}</span>
-                               <span className="text-[7px] font-bold text-zinc-400 uppercase">Empty</span>
+                               <span className="text-[7px] font-bold text-zinc-400 uppercase">Available</span>
                             </div>
                             <div className="bg-zinc-50 rounded-[22px] p-4 flex flex-col items-center border border-zinc-100">
                                <Shield size={14} className="text-primary mb-1" />
@@ -1051,7 +1105,7 @@ function LiveMapContent() {
                                onClick={() => setShowBusQR(true)}
                                className="h-16 bg-white border-2 border-zinc-100 text-zinc-900 rounded-[24px] font-black uppercase tracking-widest text-[9px] hover:border-primary transition-all flex items-center justify-center gap-2"
                             >
-                              <QrCode size={14} className="text-primary" /> Matrix ID
+                              <QrCode size={14} className="text-primary" /> Bus Code
                             </button>
                          </div>
 
@@ -1085,26 +1139,13 @@ function LiveMapContent() {
                                </select>
                             </div>
                          </div>
-                         <button 
-                           onClick={() => setStep(3)}
-                           disabled={!boardingPoint || !dropPoint}
-                           className="w-full h-20 bg-zinc-950 text-white rounded-[32px] font-black text-xl tracking-tighter hover:bg-primary transition-all flex items-center justify-center gap-3 disabled:opacity-20 active:scale-95"
-                         >
-                           Select Passengers <ChevronRight size={24} />
-                         </button>
-                      </div>
-                   )}
-
-                   {step === 3 && (
-                      <div className="space-y-8">
                          <div className="flex flex-col items-center py-6 bg-zinc-50 rounded-[40px] border border-zinc-100">
                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4">Ticket Quantity</p>
                             <div className="flex items-center gap-12">
                                <button onClick={() => setTicketQuantity(prev => Math.max(1, prev -1))} className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-xl font-black text-zinc-900 shadow-sm hover:bg-zinc-950 hover:text-white transition-all border border-zinc-200">-</button>
-                                                               <div className="text-5xl font-black text-zinc-900  min-w-[80px] flex justify-center">
+                               <div className="text-5xl font-black text-zinc-900 min-w-[80px] flex justify-center">
                                   <RollingNumber value={ticketQuantity} />
                                 </div>
-
                                <button onClick={() => setTicketQuantity(prev => Math.min(selectedBus.availableSeats, prev + 1))} className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-lg hover:bg-zinc-950 transition-all">+</button>
                             </div>
                             <div className="space-y-4 w-full px-6 mt-6">
@@ -1113,12 +1154,34 @@ function LiveMapContent() {
                                  onChange={(val) => setPassengerDetails({...passengerDetails, phone: val})}
                                />
                              </div>
+
+                             {/* Luggage Selection */}
+                             <div className="w-full px-6 mt-6 border-t border-zinc-100 pt-6">
+                               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                 <Package size={14} className="text-primary" /> Add Luggage
+                               </h3>
+                               <div className="grid grid-cols-2 gap-3">
+                                 {(['None', 'Small', 'Medium', 'Large'] as const).map(type => (
+                                   <button 
+                                     key={type}
+                                     onClick={() => setLuggageType(type)}
+                                     className={`py-3 rounded-[16px] text-[10px] font-black uppercase tracking-widest border transition-all ${
+                                       luggageType === type 
+                                         ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
+                                         : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-300'
+                                     }`}
+                                   >
+                                     {type} {type !== 'None' && <span className="block mt-0.5 text-[8px] opacity-75">+₹{LUGGAGE_PRICES[type]}</span>}
+                                   </button>
+                                 ))}
+                               </div>
+                             </div>
                          </div>
 
                          <button 
                            onClick={confirmBooking}
-                           disabled={!passengerDetails.phone || passengerDetails.phone.length < 10}
-                           className="w-full h-20 bg-primary text-white rounded-[32px] font-black text-xl tracking-tighter hover:bg-zinc-950 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-30"
+                           disabled={!boardingPoint || !dropPoint || !passengerDetails.phone || passengerDetails.phone.length < 10}
+                           className="w-full h-20 bg-primary text-white rounded-[32px] font-black text-xl tracking-tighter hover:bg-zinc-950 transition-all flex items-center justify-center gap-3 disabled:opacity-30 active:scale-95"
                          >
                            Proceed to Payment <ChevronRight size={24} />
                          </button>
@@ -1160,9 +1223,15 @@ function LiveMapContent() {
                               </div>
                             </div>
                             <div className="space-y-1 text-right">
+                              <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Luggage</p>
+                              <div className="text-lg font-black text-zinc-300 flex justify-end">
+                                {luggageType !== 'None' ? `${luggageType} (+₹${LUGGAGE_PRICES[luggageType]})` : 'None'}
+                              </div>
+                            </div>
+                            <div className="space-y-1 mt-4 col-span-2 text-right border-t border-zinc-800 pt-4">
                               <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Total Fare</p>
-                              <div className="text-2xl font-black text-primary  flex justify-end">
-                                <RollingNumber value={ticketQuantity * (selectedBus.fare || 150)} prefix="₹" />
+                              <div className="text-2xl font-black text-primary flex justify-end items-center">
+                                ₹<RollingNumber value={ticketQuantity * (selectedBus.fare || 1) + (LUGGAGE_PRICES[luggageType] || 0)} />
                               </div>
                             </div>
                           </div>
@@ -1502,7 +1571,7 @@ function LiveMapContent() {
                 </div>
                 
                 <div className="flex flex-col items-center gap-2">
-                  <p className="text-[7px] font-black text-zinc-400 uppercase tracking-[0.4em]">Matrix ID</p>
+                  <p className="text-[7px] font-black text-zinc-400 uppercase tracking-[0.4em]">Bus Code</p>
                   <div className="px-10 py-4 bg-primary rounded-full shadow-lg border-4 border-white/20">
                      <span className="text-white font-black text-2xl tracking-[0.2em]">{selectedBus.busCode}</span>
                   </div>

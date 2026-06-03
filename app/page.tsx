@@ -280,9 +280,9 @@ export default function MobileDashboard() {
             <input 
               type="text" 
               className="w-full bg-white text-slate-900 rounded-xl pl-11 pr-4 py-3 text-sm shadow-sm outline-none placeholder:text-slate-500"
-              placeholder="Search by Bus Code, Route, or Stop"
+              placeholder="Search Town Bus Routes"
               readOnly
-              onClick={() => router.push('/search-buses')}
+              onClick={() => router.push('/town-bus')}
             />
           </div>
         </div>
@@ -362,28 +362,28 @@ export default function MobileDashboard() {
             </motion.div>
           )}
 
-          {/* Gold Membership Premium Teaser */}
+          {/* Town Bus Booking Teaser */}
           <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-md relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-200/10 to-transparent opacity-50"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#FF9933]/10 to-transparent opacity-50"></div>
             <div className="p-5 text-white relative z-10 flex items-center justify-between">
-              <div className="w-2/3">
+              <div className="w-2/3 pr-2">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Sparkles size={14} className="text-amber-400" />
-                  <p className="text-[10px] font-black text-amber-400 tracking-widest uppercase">Premium</p>
+                  <Bus size={14} className="text-[#FF9933]" />
+                  <p className="text-[10px] font-black text-[#FF9933] tracking-widest uppercase">Town Bus</p>
                 </div>
-                <h3 className="text-xl font-black tracking-tight mb-1">Bus Memberships</h3>
-                <p className="text-xs text-slate-400 font-medium mb-3">Exclusive passes coming soon</p>
+                <h3 className="text-xl font-black tracking-tight mb-1">Town Bus Booking</h3>
+                <p className="text-[10px] text-slate-400 font-medium mb-3 leading-tight">Only buses equipped with GPS tracking can be tracked in real time. If a bus does not have GPS installed, live location and tracking features will not be available.</p>
                 <button 
-                  onClick={() => setShowMembershipModal(true)}
-                  className="inline-block bg-gradient-to-r from-amber-400 to-amber-600 text-slate-900 border border-amber-400/30 text-[10px] font-black px-4 py-2 rounded-full tracking-widest uppercase shadow-md active:scale-95 transition-all"
+                  onClick={() => router.push('/town-bus')}
+                  className="inline-block bg-[#FF9933] hover:bg-orange-600 text-white border border-[#FF9933]/30 text-[10px] font-black px-4 py-2 rounded-full tracking-widest uppercase shadow-md active:scale-95 transition-all"
                 >
-                  Show Passes
+                  Get Tickets
                 </button>
               </div>
               <div className="absolute right-0 bottom-0 top-0 w-1/3 flex items-center justify-end pr-4 opacity-90 overflow-hidden">
-                <div className="w-24 h-24 bg-amber-400/20 rounded-full blur-2xl absolute -right-4"></div>
-                <div className="bg-gradient-to-br from-amber-300 to-amber-600 w-16 h-16 rounded-full flex items-center justify-center shadow-xl z-10">
-                  <Ticket size={32} className="text-slate-900" />
+                <div className="w-24 h-24 bg-[#FF9933]/20 rounded-full blur-2xl absolute -right-4"></div>
+                <div className="bg-gradient-to-br from-[#FF9933] to-orange-600 w-16 h-16 rounded-full flex items-center justify-center shadow-xl z-10">
+                  <Ticket size={32} className="text-white" />
                 </div>
               </div>
             </div>
@@ -410,11 +410,11 @@ export default function MobileDashboard() {
                 <span className="text-[9px] font-semibold text-slate-700 leading-tight">Scan<br/>QR</span>
               </Link>
 
-              <Link href="/search-buses" className="flex flex-col items-center gap-2">
+              <Link href="/town-bus" className="flex flex-col items-center gap-2">
                 <div className="w-11 h-11 bg-[#FF9933] rounded-xl flex items-center justify-center shadow-md text-white mx-auto">
                   <Bus size={18} />
                 </div>
-                <span className="text-[9px] font-semibold text-slate-700 leading-tight">Search<br/>Routes</span>
+                <span className="text-[9px] font-semibold text-slate-700 leading-tight">Town<br/>Bus</span>
               </Link>
 
               <button 

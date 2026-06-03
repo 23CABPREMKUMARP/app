@@ -9,7 +9,7 @@ import { cn } from "@/src/lib/utils";
 
 const navItems = [
   { label: "Home", href: "/", icon: Home },
-  { label: "Track", href: "/live-map", icon: MapPin },
+  { label: "Live Map", href: "/live-map", icon: MapPin },
   { label: "Scan QR", href: "/scan", icon: QrCode, isFab: true },
   { label: "Passes", href: "/get-ticket", icon: Ticket },
   { label: "History", href: "/history", icon: History },
