@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Calendar, Clock, Filter, Bus, Navigation, Users, Zap, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Calendar, Clock, Filter, Bus, Navigation, Users, Zap, ArrowRight, QrCode } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { MOCK_BUSES } from "@/src/lib/constants";
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function TownBusSearchPage() {
   const router = useRouter();
@@ -16,11 +17,99 @@ export default function TownBusSearchPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [showFromSuggestions, setShowFromSuggestions] = useState(false);
   const [showToSuggestions, setShowToSuggestions] = useState(false);
+  const [expandedQR, setExpandedQR] = useState<string | null>(null);
+  const [hasRestoredScroll, setHasRestoredScroll] = useState(false);
 
   const allStops = Array.from(new Set(MOCK_BUSES.flatMap(b => b.routeId?.stops?.map((s: any) => s.stopName) || [])));
   
   const fromSuggestions = allStops.filter(s => s.toLowerCase().includes(from.toLowerCase()));
   const toSuggestions = allStops.filter(s => s.toLowerCase().includes(to.toLowerCase()));
+
+  // Restore search state on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const prevPath = sessionStorage.getItem('prevPath') || '';
+      const isFromTownBus = prevPath.startsWith('/town-bus');
+      
+      if (isFromTownBus) {
+        const savedStateStr = sessionStorage.getItem('townBusSearchState');
+        if (savedStateStr) {
+          try {
+            const savedState = JSON.parse(savedStateStr);
+            setFrom(savedState.from || '');
+            setTo(savedState.to || '');
+            setDate(savedState.date || '');
+            setResults(savedState.results || []);
+            setHasSearched(savedState.hasSearched || false);
+          } catch (e) {
+            console.error('Error restoring town bus search state:', e);
+          }
+        }
+      } else {
+        // Exited town-bus module: clear search cache
+        sessionStorage.removeItem('townBusSearchState');
+        sessionStorage.removeItem('townBusScrollY');
+      }
+    }
+  }, []);
+
+  // Restore scroll position after results are loaded
+  useEffect(() => {
+    if (results.length > 0 && !hasRestoredScroll) {
+      if (typeof window !== 'undefined') {
+        const savedScrollY = sessionStorage.getItem('townBusScrollY');
+        if (savedScrollY) {
+          const y = parseInt(savedScrollY, 10);
+          if (!isNaN(y) && y > 0) {
+            const timer = setTimeout(() => {
+              window.scrollTo(0, y);
+              setHasRestoredScroll(true);
+            }, 150);
+            return () => clearTimeout(timer);
+          }
+        }
+        setHasRestoredScroll(true);
+      }
+    }
+  }, [results, hasRestoredScroll]);
+
+  // Track scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      if (results.length > 0 && typeof window !== 'undefined') {
+        sessionStorage.setItem('townBusScrollY', window.scrollY.toString());
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [results]);
+
+  const handleClearSearch = () => {
+    setFrom('');
+    setTo('');
+    setResults([]);
+    setHasSearched(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('townBusSearchState');
+      sessionStorage.removeItem('townBusScrollY');
+    }
+  };
+
+  const handleLocationChange = (type: 'from' | 'to', value: string) => {
+    if (type === 'from') {
+      setFrom(value);
+    } else {
+      setTo(value);
+    }
+    // Clear results on location change
+    setResults([]);
+    setHasSearched(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('townBusSearchState');
+      sessionStorage.removeItem('townBusScrollY');
+    }
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!from || !to) return;
@@ -31,7 +120,22 @@ export default function TownBusSearchPage() {
     try {
       const res = await fetch(`/api/town-bus/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
       const data = await res.json();
-      setResults(data.trips || []);
+      const trips = data.trips || [];
+      setResults(trips);
+      
+      // Save search state
+      if (typeof window !== 'undefined') {
+        const stateToSave = {
+          from,
+          to,
+          date,
+          results: trips,
+          hasSearched: true
+        };
+        sessionStorage.setItem('townBusSearchState', JSON.stringify(stateToSave));
+        sessionStorage.setItem('townBusScrollY', '0');
+        setHasRestoredScroll(true);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -76,7 +180,7 @@ export default function TownBusSearchPage() {
                       type="text" 
                       placeholder="E.g. Gandhipuram"
                       value={from}
-                      onChange={(e) => { setFrom(e.target.value); setShowFromSuggestions(true); }}
+                      onChange={(e) => { handleLocationChange('from', e.target.value); setShowFromSuggestions(true); }}
                       onFocus={() => setShowFromSuggestions(true)}
                       onBlur={() => setTimeout(() => setShowFromSuggestions(false), 200)}
                       className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none placeholder:text-slate-300"
@@ -89,7 +193,7 @@ export default function TownBusSearchPage() {
                     {fromSuggestions.map((stop, i) => (
                       <div 
                         key={i} 
-                        onClick={() => { setFrom(stop); setShowFromSuggestions(false); }}
+                        onClick={() => { handleLocationChange('from', stop); setShowFromSuggestions(false); }}
                         className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-sm font-bold text-slate-700 border-b border-slate-50 last:border-0"
                       >
                         {stop}
@@ -108,7 +212,7 @@ export default function TownBusSearchPage() {
                       type="text" 
                       placeholder="E.g. Ukkadam"
                       value={to}
-                      onChange={(e) => { setTo(e.target.value); setShowToSuggestions(true); }}
+                      onChange={(e) => { handleLocationChange('to', e.target.value); setShowToSuggestions(true); }}
                       onFocus={() => setShowToSuggestions(true)}
                       onBlur={() => setTimeout(() => setShowToSuggestions(false), 200)}
                       className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none placeholder:text-slate-300"
@@ -121,7 +225,7 @@ export default function TownBusSearchPage() {
                     {toSuggestions.map((stop, i) => (
                       <div 
                         key={i} 
-                        onClick={() => { setTo(stop); setShowToSuggestions(false); }}
+                        onClick={() => { handleLocationChange('to', stop); setShowToSuggestions(false); }}
                         className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-sm font-bold text-slate-700 border-b border-slate-50 last:border-0"
                       >
                         {stop}
@@ -143,6 +247,15 @@ export default function TownBusSearchPage() {
                 <>Search Buses <Search size={18} /></>
               )}
             </button>
+            {hasSearched && (
+              <button 
+                type="button"
+                onClick={handleClearSearch}
+                className="w-full bg-slate-100 text-slate-700 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-colors active:scale-95 flex items-center justify-center gap-2 mt-2 border border-slate-200/50"
+              >
+                Clear Search
+              </button>
+            )}
           </form>
         </motion.div>
       </div>
@@ -192,11 +305,52 @@ export default function TownBusSearchPage() {
                     </span>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex flex-col items-end gap-2">
                   <div className="text-[#FF9933] font-black text-2xl tracking-tighter">₹{trip.fare}</div>
                   <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Per Seat</div>
+                  
+                  {/* Bus Code & QR Section */}
+                  {(trip.busId?.busCode || trip.busId?.qrCodeUrl) && (
+                    <div 
+                      onClick={(e) => { e.stopPropagation(); setExpandedQR(expandedQR === trip._id ? null : trip._id); }}
+                      className="flex items-center gap-2 mt-1 bg-slate-50 p-1.5 rounded-lg border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors"
+                    >
+                      {trip.busId.busCode && (
+                        <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100">
+                          <QRCodeSVG 
+                            value={`BUS:${trip.busId.busCode}`} 
+                            size={32} 
+                            level="L" 
+                          />
+                        </div>
+                      )}
+                      <div className="text-right">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none mb-1">Bus Code</span>
+                        <span className="text-xs font-black text-slate-800 uppercase tracking-widest">{trip.busId.busCode}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* Expanded QR Modal/Section */}
+              <AnimatePresence>
+                {expandedQR === trip._id && trip.busId?.busCode && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="w-full mb-4 flex flex-col items-center justify-center bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-inner"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 mb-4">
+                      <QRCodeSVG value={`BUS:${trip.busId.busCode}`} size={160} level="H" />
+                    </div>
+                    <p className="text-xl font-black text-slate-900 uppercase tracking-widest">{trip.busId.busCode}</p>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest text-center mt-2">Scan this code while boarding to book instantly</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div className="bg-zinc-950 rounded-[24px] p-4 flex items-center justify-between relative overflow-hidden group mb-4">
                 <div className="absolute inset-y-0 left-0 w-1 bg-[#FF9933]" />

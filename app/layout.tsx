@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-
+import { AppBootSplash } from "@/src/components/AppBootSplash";
 
 import { Footer } from "@/src/components/Footer";
 import { MobileBottomNav } from "@/src/components/MobileBottomNav";
@@ -83,7 +83,9 @@ export default function RootLayout({
         >
 
           <main className="flex-1 scroll-smooth">
-            {children}
+            <AppBootSplash>
+              {children}
+            </AppBootSplash>
           </main>
           <MobileBottomNav />
           <div className="hidden md:block">

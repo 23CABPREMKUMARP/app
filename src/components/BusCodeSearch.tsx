@@ -65,7 +65,7 @@ export const BusCodeSearch = ({ onScanClick, compact = false }: BusCodeSearchPro
 
       if (data.success && data.bus) {
         saveToRecent(upperCode);
-        router.push(`/live-map?busId=${data.bus._id}&code=true`);
+        router.push(`/town-bus/bus/${data.bus.busCode}`);
       } else {
         setError("Invalid Bus Code. Check and try again.");
         setTimeout(() => setError(""), 3000);

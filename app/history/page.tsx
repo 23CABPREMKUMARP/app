@@ -365,6 +365,18 @@ export default function HistoryPage() {
                           <p className="text-sm font-serif font-black text-slate-950">₹{selectedBooking.totalAmount}</p>
                         </div>
                       </div>
+                      
+                      {selectedBooking.phonepeTransactionId && (
+                        <div className="mt-4 pt-3 border-t border-[#5d4037]/10 flex items-center justify-between">
+                           <div className="flex items-center gap-1.5">
+                             <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center">
+                               <span className="font-black text-purple-600 text-[8px]">Pe</span>
+                             </div>
+                             <span className="text-[8px] font-bold text-[#5d4037]/60 uppercase tracking-widest">PhonePe Confirmed</span>
+                           </div>
+                           <span className="text-[9px] font-bold text-[#5d4037]/80 uppercase tracking-widest">TXN: {selectedBooking.phonepeTransactionId}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -406,10 +418,17 @@ export default function HistoryPage() {
                 <div className="w-full flex gap-3 mt-4 print:hidden">
                   <button 
                     onClick={handlePrint}
-                    className="flex-1 py-4 bg-slate-950 hover:bg-[#FF9933] text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
+                    className="flex-[2] py-4 bg-slate-950 hover:bg-[#FF9933] text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
                   >
                     <Printer size={14} /> Print Pass
                   </button>
+                  <Link href={`/live-map?busId=${selectedBooking.tripId}`} className="flex-[3]">
+                    <button 
+                      className="w-full h-full py-4 bg-[#10B981] hover:bg-[#059669] text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
+                    >
+                      <MapPin size={14} /> Track Bus
+                    </button>
+                  </Link>
                 </div>
                 
                 {/* Close Button */}

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/src/lib/db";
-import Bus from "@/src/models/Bus";
+import { supabase } from "@/src/lib/supabase";
 import { MOCK_BUSES } from "@/src/lib/constants";
 
 export async function GET(request: Request) {
@@ -12,43 +11,33 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, message: "Code required" }, { status: 400 });
     }
 
-    let bus = null;
-    let dbConnected = false;
+    const { data: bus, error } = await supabase
+      .from('buses')
+      .select('*, routes(*, stops(*))')
+      .eq('bus_code', code.toUpperCase())
+      .single();
 
-    try {
-      await connectDB();
-      dbConnected = true;
-    } catch (e) {
-      console.warn("DB offline. Using mock query fallback.");
-    }
-
-    if (dbConnected) {
-      try {
-        bus = await Bus.findOne({ busCode: code.toUpperCase() }).populate({
-          path: "routeId",
-          populate: {
-            path: "stops",
-            model: "Stop",
-          },
-        });
-      } catch (queryError) {
-        console.error("Database query failed:", queryError);
-      }
-    }
-
-    if (!bus) {
-      // Look up in MOCK_BUSES
+    if (error || !bus) {
+      console.warn("DB offline or bus not found. Using mock query fallback.");
       const mockBus = MOCK_BUSES.find(b => b.busCode === code.toUpperCase());
       if (mockBus) {
         return NextResponse.json({ success: true, bus: mockBus });
       }
-    }
-
-    if (!bus) {
       return NextResponse.json({ success: false, message: "Bus not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, bus });
+    const formattedBus = {
+      ...bus,
+      _id: bus.id,
+      busNumber: bus.bus_number,
+      busCode: bus.bus_code,
+      routeId: bus.routes,
+      departureTime: bus.departure_time,
+      arrivalTime: bus.arrival_time,
+      availableSeats: bus.available_seats
+    };
+
+    return NextResponse.json({ success: true, bus: formattedBus });
   } catch (error) {
     console.error("Search API Error:", error);
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });

@@ -74,9 +74,13 @@ export const IntelligentPhoneInput: React.FC<IntelligentPhoneInputProps> = ({
             ref={inputRef}
             type="tel"
             value={value}
+            autoComplete="new-password"
+            data-lpignore="true"
+            name="contact_number_no_autofill"
             onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, "");
-              if (val.length <= 10) onChange(val);
+              const clean = e.target.value.replace(/\D/g, "");
+              const val = clean.length > 10 ? clean.slice(-10) : clean;
+              onChange(val);
             }}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}

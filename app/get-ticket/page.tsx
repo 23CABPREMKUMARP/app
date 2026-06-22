@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowLeft, Phone, Search, Loader2, Ticket, MapPin, Clock, Calendar, QrCode, ShieldCheck, Download, Zap, X, ChevronRight, CheckCircle2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { BusCodeSearch } from "@/src/components/BusCodeSearch";
+import { WatermarkOverlay } from "@/src/components/ui/WatermarkOverlay";
 
 export default function GetTicketPage() {
   const [phone, setPhone] = useState("");
@@ -14,16 +15,8 @@ export default function GetTicketPage() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [diagnostics, setDiagnostics] = useState<string>("");
-  const [activePrintIndex, setActivePrintIndex] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  const handlePrint = (idx: number) => {
-    setActivePrintIndex(idx);
-    setTimeout(() => {
-      window.print();
-      setActivePrintIndex(null);
-    }, 150);
-  };
 
   // Pre-load phone number from localStorage if present
   useEffect(() => {
@@ -36,7 +29,7 @@ export default function GetTicketPage() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(Date.now()), 60000);
+    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -86,7 +79,9 @@ export default function GetTicketPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-28 pt-20 overflow-x-hidden safe-bottom">
+    <main className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-28 pt-20 overflow-x-hidden safe-bottom secure-content">
+      <WatermarkOverlay text={`SECURE TICKET ${phone}`} />
+      
       {/* Native Mobile Top Bar */}
       <div className="bg-white border-b border-slate-100 py-6 px-6 fixed top-0 left-0 right-0 z-40 shadow-sm flex items-center gap-3">
         <Link href="/" className="p-2 hover:bg-slate-100 rounded-xl transition-all">
@@ -195,8 +190,9 @@ export default function GetTicketPage() {
                   if (!isExpired) {
                      const hours = Math.floor(timeRemainingMs / 3600000);
                      const mins = Math.floor((timeRemainingMs % 3600000) / 60000);
-                     if (hours > 0) timeRemainingStr = `${hours}h ${mins}m`;
-                     else timeRemainingStr = `${mins}m`;
+                     const secs = Math.floor((timeRemainingMs % 60000) / 1000);
+                     if (hours > 0) timeRemainingStr = `${hours}h ${mins}m ${secs}s`;
+                     else timeRemainingStr = `${mins}m ${secs}s`;
                   }
 
                   return (
@@ -210,7 +206,7 @@ export default function GetTicketPage() {
                     {/* Vintage Ornate Gold Ticket Design (Horizontal Landscape Layout matching Live Map) */}
                     <div 
                       id={`printable-ticket-${idx}`}
-                      className={`ticket-container relative bg-[#f7e49f] bg-gradient-to-br from-[#f7e49f] via-[#e5c167] to-[#d4af37] rounded-[20px] md:rounded-[40px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.5)] overflow-hidden border-[6px] md:border-[12px] flex flex-col md:flex-row min-h-[500px] md:min-h-[380px] w-full drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] text-left ${activePrintIndex === idx ? "print-active-ticket" : ""} ${isExpired ? "border-red-500/80" : "border-green-500/80"}`}
+                      className={`ticket-container relative bg-[#f7e49f] bg-gradient-to-br from-[#f7e49f] via-[#e5c167] to-[#d4af37] rounded-[20px] md:rounded-[40px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.5)] overflow-hidden border-[6px] md:border-[12px] flex flex-col md:flex-row min-h-[500px] md:min-h-[380px] w-full drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] text-left ${isExpired ? "border-red-500/80" : "border-green-500/80"}`}
                     >
                       <div className="absolute inset-0 opacity-100 mix-blend-multiply pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')] print:opacity-50" />
                       <div className="absolute inset-0 opacity-20 mix-blend-multiply pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')]" />
@@ -254,7 +250,7 @@ export default function GetTicketPage() {
                             </div>
                             <div className="flex flex-col">
                               <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60">Passengers:</span>
-                              <span className="text-lg font-serif font-black tracking-tight">{booking.seats?.length || 1}</span>
+                              <span className="text-lg font-serif font-black tracking-tight">{booking.seats?.length || 1} {booking.passengers?.[0]?.luggage && booking.passengers[0].luggage !== 'None' ? <span className="text-xs uppercase tracking-widest text-[#5d4037]/70 ml-1">(+ {booking.passengers[0].luggage} Luggage)</span> : null}</span>
                             </div>
                           </div>
 
@@ -278,6 +274,36 @@ export default function GetTicketPage() {
                               <span className="font-sans font-bold uppercase text-[8px] tracking-[0.2em] text-[#5d4037]/60 block mb-0.5">Total Fare</span>
                               <p className="text-sm font-serif font-black text-slate-950">₹{booking.totalAmount}</p>
                             </div>
+                          </div>
+                          
+                          {booking.phonepeTransactionId && (
+                            <div className="mt-4 pt-3 border-t border-[#5d4037]/10 flex items-center justify-between">
+                               <div className="flex items-center gap-1.5">
+                                 <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center">
+                                   <span className="font-black text-purple-600 text-[8px]">Pe</span>
+                                 </div>
+                                 <span className="text-[8px] font-bold text-[#5d4037]/60 uppercase tracking-widest">PhonePe Confirmed</span>
+                               </div>
+                               <span className="text-[9px] font-bold text-[#5d4037]/80 uppercase tracking-widest">TXN: {booking.phonepeTransactionId}</span>
+                            </div>
+                          )}
+
+                          {/* Track Bus Button */}
+                          <div className="mt-4 pt-4 border-t border-[#5d4037]/20 flex justify-center">
+                            {!isExpired && booking.busId ? (
+                              <Link
+                                href={`/live-map?busId=${booking.busId._id || booking.busId}`}
+                                className="w-full bg-[#FF9933] text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/30"
+                              >
+                                <MapPin size={14} />
+                                Track Bus Live
+                              </Link>
+                            ) : (
+                              <div className="w-full bg-slate-200 text-slate-500 py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                                <Clock size={14} />
+                                {isExpired ? "Tracking Ended" : "Live tracking is currently unavailable for this bus."}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -321,17 +347,6 @@ export default function GetTicketPage() {
                       <div className="hidden md:block absolute left-[240px] bottom-0 translate-y-1/2 w-8 h-8 rounded-full bg-slate-50 border border-slate-100/50" />
                     </div>
 
-                    {/* Print Button (Outside/underneath, only visible when not printing) */}
-                    {!isExpired && (
-                    <div className="w-full flex gap-3 mt-4 print:hidden">
-                      <button 
-                        onClick={() => handlePrint(idx)}
-                        className="flex-1 py-4 bg-slate-950 hover:bg-[#FF9933] text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
-                      >
-                        <Download size={14} /> Download Pass PDF
-                      </button>
-                    </div>
-                    )}
                   </motion.div>
                 )})}
               </div>

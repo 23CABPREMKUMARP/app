@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/src/lib/db";
-import TripNotification from "@/src/models/TripNotification";
+import { supabase } from "@/src/lib/supabase";
 
 export async function POST(req: Request) {
   try {
@@ -11,16 +10,26 @@ export async function POST(req: Request) {
     }
 
     try {
-      await connectDB();
       // Fetch notifications sorted by latest
-      const notifications = await TripNotification.find({ phone })
-        .populate("busId")
-        .sort({ createdAt: -1 })
+      const { data: notifications, error } = await supabase
+        .from('notifications')
+        .select('*, buses(*)')
+        .eq('phone', phone)
+        .order('created_at', { ascending: false })
         .limit(10);
 
-      return NextResponse.json({ success: true, notifications });
+      if (error) throw error;
+
+      const formattedNotifications = notifications.map(n => ({
+        ...n,
+        busId: n.buses || n.bus_id,
+        ticketId: n.ticket_id,
+        createdAt: n.created_at
+      }));
+
+      return NextResponse.json({ success: true, notifications: formattedNotifications });
     } catch (dbError) {
-      console.warn("DB offline. Returning empty notifications array.");
+      console.warn("Supabase query failed. Returning empty notifications array.", dbError);
       return NextResponse.json({ success: true, notifications: [] });
     }
   } catch (error: any) {

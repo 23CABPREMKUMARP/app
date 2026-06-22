@@ -8,23 +8,57 @@ import Link from "next/link";
 import { useState } from "react";
 import QRScanner from "@/src/components/ui/QRScanner";
 import { useRouter } from "next/navigation";
+import { WatermarkOverlay } from "@/src/components/ui/WatermarkOverlay";
 
 export default function ScanPage() {
   const [showScanner, setShowScanner] = useState(true);
   const router = useRouter();
 
-  const handleScan = (data: string) => {
+  const handleScan = async (data: string) => {
     setShowScanner(false);
-    // established link logic: if it's a URL or raw ID, we push to map
-    let busId = data;
+    
+    // Extract busId or busCode from QR code data
+    let busId = "";
+    let busCode = "";
+    
     if (data.includes("busId=")) {
       busId = data.split("busId=")[1].split("&")[0];
+    } else if (data.startsWith("BUS:")) {
+      busCode = data.replace("BUS:", "").trim();
+    } else {
+      // Assume raw string is busCode or busId
+      if (data.startsWith("TNB") || data.startsWith("B-")) {
+        busCode = data.trim();
+      } else {
+        busId = data.trim();
+      }
     }
-    router.push(`/live-map?busId=${busId}`);
+
+    try {
+      const queryParams = new URLSearchParams();
+      if (busCode) queryParams.append("busCode", busCode);
+      if (busId) queryParams.append("busId", busId);
+
+      const res = await fetch(`/api/town-bus/current-trip?${queryParams.toString()}`);
+      if (res.ok) {
+        const trip = await res.json();
+        if (trip && trip._id) {
+          router.push(`/town-bus/${trip._id}/seat-selection`);
+          return;
+        }
+      }
+      
+      // Fallback to live map if no active trip or error
+      router.push(`/live-map?${queryParams.toString()}`);
+    } catch (err) {
+      console.error("Scan processing error:", err);
+      router.push(`/live-map?${busId ? `busId=${busId}` : `busCode=${busCode}`}`);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden secure-content">
+      <WatermarkOverlay />
       <AnimatePresence>
         {showScanner && (
           <QRScanner 

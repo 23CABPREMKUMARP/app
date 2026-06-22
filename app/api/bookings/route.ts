@@ -1,24 +1,11 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/src/lib/db";
-import Booking from "@/src/models/Booking";
-import Bus from "@/src/models/Bus";
-import Seat from "@/src/models/Seat";
+import { supabase } from "@/src/lib/supabase";
 import crypto from "crypto";
-import { supabaseFetch } from "@/src/lib/supabase";
 
 export async function POST(req: Request) {
   try {
     const data = await req.json();
     
-    // Matrix Hub Resilience: Try to connect to DB, but allow simulation mode survival
-    let isSimulationMode = false;
-    try {
-       await connectDB();
-    } catch (dbError) {
-       console.warn("Matrix Hub Link Offline: Switching to Simulation Data Protocol.");
-       isSimulationMode = true;
-    }
-
     const {
       userId,
       busId,
@@ -33,66 +20,48 @@ export async function POST(req: Request) {
     const ticketId = `TKT-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
     const qrToken = crypto.randomBytes(32).toString("hex");
 
+    const isSimulationMode = busId?.includes("matrix") || !busId?.includes("-");
+
     const bookingData = {
-      ticketId,
-      userId: userId || "GUEST_LINK",
-      busId,
+      ticket_id: ticketId,
+      user_id: userId || "GUEST_LINK",
+      bus_id: isSimulationMode ? null : busId,
       seats: seats || ["S-1"],
-      totalAmount: totalAmount || 0,
-      boardingPoint: boardingPoint || "TRANSIT_HUB",
+      total_amount: totalAmount || 0,
+      boarding_point: boardingPoint || "TRANSIT_HUB",
       destination: destination || "END_NODE",
-      passengers,
-      paymentStatus: "Paid",
-      qrToken,
-      validationStatus: "Active"
+      passengers: passengers,
+      payment_status: "Paid",
+      qr_token: qrToken,
+      status: "Confirmed",
+      validation_status: "Active"
     };
 
-    let savedBooking = bookingData;
-
-    try {
-      if (!isSimulationMode) {
-        const newBooking = new Booking(bookingData);
-        await newBooking.save();
-        savedBooking = newBooking;
-
-        // Mark seats as booked (simulation-safe check)
-        if (!busId?.includes("matrix") && busId?.length === 24) {
-          await Seat.updateMany(
-            { busId, seatNumber: { $in: seats } },
-            { $set: { isBooked: true } }
-          );
-
-          await Bus.findByIdAndUpdate(busId, {
-            $inc: { availableSeats: -seats.length },
-          });
-        }
+    if (!isSimulationMode) {
+      try {
+        const { error } = await supabase.from('bookings').insert([bookingData]);
+        if (error) throw error;
+        
+        // Note: Managing seats/availableSeats on regular buses would require corresponding tables in Supabase.
+      } catch (dbError) {
+        console.warn("Registry Sync Bypass (Supabase):", dbError);
       }
-    } catch (dbError) {
-      console.warn("Registry Sync Bypass (MongoDB Node):", dbError);
-    }
-
-    // SUPABASE MATRIX UPLINK: Independent Persistence Layer
-    try {
-      await supabaseFetch("bookings", "POST", {
-        ticket_id: ticketId,
-        user_id: userId || "GUEST_LINK",
-        bus_id: busId || "SIM_BUS",
-        seats: seats || ["S-1"],
-        total_amount: totalAmount || 0,
-        boarding_point: boardingPoint || "TRANSIT_HUB",
-        destination: destination || "END_NODE",
-        phone: passengers?.[0]?.phone || "N/A",
-        qr_token: qrToken,
-        status: "Confirmed"
-      });
-      console.log("Supabase Sync: Success. Pass committed to cloud PostgreSQL.");
-    } catch (supabaseError) {
-      console.warn("Supabase Sync Failure:", supabaseError);
     }
 
     return NextResponse.json({
       success: true,
-      booking: savedBooking,
+      booking: {
+        ticketId: bookingData.ticket_id,
+        userId: bookingData.user_id,
+        busId: bookingData.bus_id,
+        seats: bookingData.seats,
+        totalAmount: bookingData.total_amount,
+        boardingPoint: bookingData.boarding_point,
+        destination: bookingData.destination,
+        passengers: bookingData.passengers,
+        paymentStatus: bookingData.payment_status,
+        qrToken: bookingData.qr_token
+      },
       isSimulation: isSimulationMode,
       message: "Sync Successful! Digital Pass Generated.",
     });

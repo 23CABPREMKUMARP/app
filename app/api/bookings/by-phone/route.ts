@@ -1,19 +1,8 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/src/lib/db";
-import Booking from "@/src/models/Booking";
-import Bus from "@/src/models/Bus";
-import Route from "@/src/models/Route";
-import { supabaseFetch } from "@/src/lib/supabase";
+import { supabase } from "@/src/lib/supabase";
 
 export async function POST(req: Request) {
   try {
-    // Matrix Hub Resilience: Try to connect to DB, but allow simulation mode survival
-    try {
-       await connectDB();
-    } catch (dbError) {
-       console.warn("Matrix Hub Link Offline: Shifting to Cloud Matrix Fallback.");
-       // DO NOT return here - we need to continue to Supabase check
-    }
     const body = await req.json().catch(() => ({}));
     const phone = body.phone;
 
@@ -22,58 +11,92 @@ export async function POST(req: Request) {
        return NextResponse.json([]);
     }
 
-    console.log(`[Matrix Search] Initiated for: ${phone}`);
+    console.log(`[Supabase Search] Initiated for: ${phone}`);
 
-    let bookings: any[] = [];
-    
-    // Attempt MongoDB Retrieval if possible
-    try {
-      bookings = await Booking.find({
-        "passengers.phone": phone,
-        paymentStatus: "Paid"
-      })
-      .populate({
-        path: "busId",
-        populate: { path: "routeId" }
-      })
-      .sort({ bookingDate: -1 });
-      console.log(`[MongoDB Results] Found ${bookings.length} matches.`);
-    } catch (mongoError) {
-      console.warn("MongoDB Neural Cluster Unreachable: Checking Cloud Matrix Only.");
+    const digits = phone.replace(/\D/g, "");
+    const cleanPhone = digits.length > 10 ? digits.slice(-10) : digits;
+
+    if (!cleanPhone) {
+        console.log("[Search Failure] Phone number missing/invalid in payload.");
+        return NextResponse.json([]);
     }
 
-    // SUPABASE FALLBACK / SYNC: If MongoDB is silent or in simulation, check Supabase Matrix
-    if (bookings.length === 0) {
-      try {
-        const cleanPhone = phone.trim();
-        console.log(`[Supabase Search] Checking Matrix for: ${cleanPhone}`);
-        // Explicitly selecting all columns to ensure full data hydration
-        const supabaseResults = await supabaseFetch("bookings", "GET", undefined, `select=*&phone=eq.${encodeURIComponent(cleanPhone)}`);
-        console.log(`[Supabase Result] Raw Data:`, JSON.stringify(supabaseResults));
-        console.log(`[Supabase Results] Found ${supabaseResults?.length || 0} matches.`);
-        if (supabaseResults && supabaseResults.length > 0) {
-          // Map Supabase layout to the expected Frontend schema
-          const mappedResults = supabaseResults.map((b: any) => ({
-             ...b,
-             ticketId: b.ticket_id,
-             bookingDate: b.created_at || new Date().toISOString(),
-             boardingPoint: b.boarding_point,
-             destination: b.destination,
-             seats: b.seats || ["S-1"],
-             // Note: In a full migration, we'd also fetch Bus details from Supabase
-             busId: { busNumber: "SB-FLEET", departureTime: "LIVE" } 
-          }));
-          return NextResponse.json(mappedResults);
-        }
-      } catch (sbError) {
-        console.warn("Supabase Retrieval Link Offline:", sbError);
-      }
+    // 1. Fetch Regular Bus Bookings
+    const { data: regularBookings, error: regularError } = await supabase
+      .from('bookings')
+      .select('*, buses(*, routes(*))')
+      .eq('status', 'Confirmed')
+      .eq('phone', cleanPhone)
+      .order('created_at', { ascending: false });
+
+    if (regularError) {
+      console.error("Error fetching regular bookings from Supabase:", regularError);
     }
 
-    return NextResponse.json(bookings);
+    // 2. Fetch Town Bus Bookings
+    const { data: townBusBookings, error: townBusError } = await supabase
+      .from('town_bus_bookings')
+      .select('*, town_bus_trips(*)')
+      .eq('payment_status', 'Paid')
+      .contains('passengers', `[{"phone": "${cleanPhone}"}]`)
+      .order('booking_date', { ascending: false });
+
+    if (townBusError) {
+      console.error("Error fetching town bus bookings from Supabase:", townBusError);
+    }
+
+    let allBookings: any[] = [];
+
+    // Map Regular Bookings to frontend schema
+    if (regularBookings) {
+      const mappedRegular = regularBookings.map((b: any) => ({
+        ...b,
+        ticketId: b.ticket_id,
+        bookingDate: b.booking_date || b.created_at,
+        boardingPoint: b.boarding_point,
+        destination: b.destination,
+        paymentStatus: b.payment_status || (b.status === "Confirmed" ? "Paid" : "Failed"),
+        totalAmount: b.total_amount || b.amount,
+        busId: b.buses ? { 
+          busNumber: b.buses.bus_number, 
+          routeId: b.buses.routes ? { routeName: b.buses.routes.name } : null 
+        } : { busNumber: "TN-38-REG" }
+      }));
+      allBookings = [...allBookings, ...mappedRegular];
+    }
+
+    // Map Town Bus Bookings to frontend schema
+    if (townBusBookings) {
+      const { MOCK_BUSES } = await import('@/src/lib/constants');
+      const mappedTownBus = townBusBookings.map((b: any) => {
+        // Try to resolve bus number: passengers[0].bus_number → MOCK_BUSES lookup by bus_id/trip_id → trip join → fallback
+        const mockBus = MOCK_BUSES.find((m: any) => m._id === b.bus_id || m._id === b.trip_id) || null;
+        const resolvedBusNumber = b.bus_number || b.passengers?.[0]?.bus_number || mockBus?.busNumber || b.town_bus_trips?.bus_number || 'TOWN-BUS';
+        return {
+          ...b,
+          ticketId: b.ticket_id,
+          bookingDate: b.booking_date || b.created_at,
+          boardingPoint: b.boarding_point,
+          destination: b.destination,
+          paymentStatus: b.payment_status,
+          totalAmount: b.total_amount || b.amount,
+          busId: { 
+            busNumber: resolvedBusNumber,
+            _id: b.town_bus_trips?.id || b.trip_id 
+          }
+        };
+      });
+      allBookings = [...allBookings, ...mappedTownBus];
+    }
+
+    // Sort combined results by bookingDate descending
+    allBookings.sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime());
+
+    console.log(`[Supabase Results] Found ${allBookings.length} total matches.`);
+
+    return NextResponse.json(allBookings);
   } catch (error) {
     console.error("Error fetching bookings by phone:", error);
-    // Absolute fallback: Return empty list to prevent frontend crash
     return NextResponse.json([]);
   }
 }

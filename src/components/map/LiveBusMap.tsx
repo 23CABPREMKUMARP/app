@@ -329,7 +329,7 @@ const LiveBusMap = React.memo(({
       if (userLocation) {
          if (!userMarkerRef.current) {
             const el = document.createElement('div');
-            el.className = 'w-5 h-5 bg-orange-600 border-[3px] border-white rounded-full shadow-[0_0_20px_rgba(255,107,0,0.8)] animate-pulse';
+            el.className = 'w-5 h-5 bg-primary border-[3px] border-white rounded-full gps-pulse-marker';
             userMarkerRef.current = new maplibregl.Marker({ element: el })
               .setLngLat([userLocation.lng, userLocation.lat])
               .addTo(map);

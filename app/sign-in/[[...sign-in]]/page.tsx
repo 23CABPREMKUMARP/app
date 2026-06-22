@@ -43,7 +43,7 @@ export default function SignInPage() {
 
         {/* Footer note */}
         <p className="text-center text-[10px] text-slate-300 font-medium uppercase tracking-widest">
-          Secured by Clerk · Razorpay 256-bit encrypted
+          Secured by Clerk · PhonePe 256-bit encrypted
         </p>
       </div>
     </main>

@@ -1,19 +1,8 @@
 import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
-import connectMongo from '@/src/lib/db';
-import LuggageBooking from '@/src/models/LuggageBooking';
-import Razorpay from 'razorpay';
-import crypto from 'crypto';
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+import { supabase } from '@/src/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    await connectMongo();
-    
     const body = await request.json();
     const { 
       userId, 
@@ -28,65 +17,54 @@ export async function POST(request: Request) {
       action
     } = body;
 
-    if (action === 'initialize') {
-      const options = {
-        amount: Math.round(totalAmount * 100), 
-        currency: "INR",
-        receipt: `receipt_lug_${Date.now()}`
-      };
-
-      const order = await razorpay.orders.create(options);
+    if (action === 'initialize' || action === 'book') {
 
       const trackingId = `TRK-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
       const otp = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP for delivery
       
-      const newLuggage = new LuggageBooking({
-        trackingId,
-        userId,
-        senderDetails,
-        receiverDetails,
-        packageCategory,
+      const luggageData = {
+        tracking_id: trackingId,
+        user_id: userId,
+        sender_details: senderDetails,
+        receiver_details: receiverDetails,
+        package_category: packageCategory,
         weight,
         dimensions,
-        pickupPoint,
-        dropPoint,
-        totalAmount,
+        pickup_point: pickupPoint,
+        drop_point: dropPoint,
+        total_amount: totalAmount,
         otp,
-        paymentStatus: 'Pending',
+        payment_status: 'Paid',
         status: 'Booked', 
-        razorpayOrderId: order.id,
-        scanHistory: [{ status: 'Booked', location: pickupPoint, updatedBy: 'System' }]
-      });
+        scan_history: [{ status: 'Booked', location: pickupPoint, updatedBy: 'System' }]
+      };
 
-      await newLuggage.save();
+      const { data: newLuggage, error } = await supabase
+        .from('luggage_bookings')
+        .insert([luggageData])
+        .select()
+        .single();
 
-      return NextResponse.json({ order, trackingId });
-    }
-
-    if (action === 'verify') {
-      const { razorpay_order_id, razorpay_payment_id, razorpay_signature, trackingId } = body;
-
-      const sign = razorpay_order_id + "|" + razorpay_payment_id;
-      const expectedSign = crypto
-        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
-        .update(sign.toString())
-        .digest("hex");
-
-      if (razorpay_signature !== expectedSign) {
-        return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 });
+      if (error) {
+        throw error;
       }
 
-      const booking = await LuggageBooking.findOneAndUpdate(
-        { trackingId },
-        { 
-          paymentStatus: 'Paid',
-          razorpayPaymentId: razorpay_payment_id,
-          razorpaySignature: razorpay_signature
-        },
-        { new: true }
-      );
+      // Convert to camelCase for frontend
+      const formattedLuggage = {
+        ...newLuggage,
+        trackingId: newLuggage.tracking_id,
+        userId: newLuggage.user_id,
+        senderDetails: newLuggage.sender_details,
+        receiverDetails: newLuggage.receiver_details,
+        packageCategory: newLuggage.package_category,
+        pickupPoint: newLuggage.pickup_point,
+        dropPoint: newLuggage.drop_point,
+        totalAmount: newLuggage.total_amount,
+        paymentStatus: newLuggage.payment_status,
+        scanHistory: newLuggage.scan_history
+      };
 
-      return NextResponse.json({ success: true, booking });
+      return NextResponse.json({ success: true, trackingId, booking: formattedLuggage });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

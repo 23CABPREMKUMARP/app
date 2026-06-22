@@ -1,13 +1,8 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/src/lib/db";
-import Bus from "@/src/models/Bus";
-import Booking from "@/src/models/Booking";
-import BusLocation from "@/src/models/BusLocation";
-import TripNotification from "@/src/models/TripNotification";
+import { supabase } from "@/src/lib/supabase";
 
 export async function POST(req: Request) {
   try {
-    await connectDB();
     const body = await req.json();
     const { busId, status, speed, lat, lng, customBroadcast } = body;
 
@@ -16,91 +11,94 @@ export async function POST(req: Request) {
     }
 
     // 1. Fetch and update the Bus status/speed
-    const bus = await Bus.findById(busId);
-    if (!bus) {
+    const { data: bus, error: fetchError } = await supabase
+      .from('buses')
+      .select('*')
+      .eq('id', busId)
+      .single();
+
+    if (fetchError || !bus) {
       return NextResponse.json({ success: false, message: "Bus not found" }, { status: 404 });
     }
 
-    if (status) {
-      bus.status = status;
-    }
-    if (speed !== undefined) {
-      bus.speed = speed;
-    }
-    bus.lastUpdate = new Date();
-    await bus.save();
-
-    // 2. Insert new location entry if coordinates are provided
+    const updates: any = { };
+    if (status) updates.status = status;
+    if (speed !== undefined) updates.speed = speed;
     if (lat !== undefined && lng !== undefined) {
-      await BusLocation.create({
-        busId,
-        lat,
-        lng,
-        timestamp: new Date()
-      });
+      updates.location = { lat, lng };
     }
 
-    // 3. Auto-notify booked passengers of that bus
+    if (Object.keys(updates).length > 0) {
+      await supabase.from('buses').update(updates).eq('id', busId);
+    }
+
+    // 2. Auto-notify booked passengers of that bus
     let notificationSent = false;
     let notificationTitle = "";
     let notificationMessage = "";
 
     if (customBroadcast) {
-      notificationTitle = `Driver Broadcast [JB-${bus.busCode}]`;
+      notificationTitle = `Driver Broadcast [JB-${bus.bus_code || bus.bus_number}]`;
       notificationMessage = customBroadcast;
     } else if (status === "Trip Started") {
       notificationTitle = "Your Bus Trip has Started! 🚀";
-      notificationMessage = `Bus ${bus.busNumber} has departed. Track its real-time location live on the map!`;
+      notificationMessage = `Bus ${bus.bus_number} has departed. Track its real-time location live on the map!`;
     } else if (status === "Arriving Soon") {
       notificationTitle = "Bus Arriving Soon! 🛑";
-      notificationMessage = `Bus ${bus.busNumber} is approaching your boarding terminal. Please be ready to board!`;
+      notificationMessage = `Bus ${bus.bus_number} is approaching your boarding terminal. Please be ready to board!`;
     } else if (status === "Reached Stop") {
       notificationTitle = "Bus Reached Nearby Stop 📍";
-      notificationMessage = `Bus ${bus.busNumber} has arrived at a checkpoint nearby.`;
+      notificationMessage = `Bus ${bus.bus_number} has arrived at a checkpoint nearby.`;
     } else if (status === "Completed") {
       notificationTitle = "Trip Completed Successfully 🏁";
-      notificationMessage = `Your journey with Digi Bus ${bus.busNumber} has concluded. Thank you for riding with us!`;
+      notificationMessage = `Your journey with Digi Bus ${bus.bus_number} has concluded. Thank you for riding with us!`;
     }
 
     if (notificationTitle && notificationMessage) {
       // Find all bookings with paymentStatus = "Paid" for this bus
-      const bookings = await Booking.find({ busId, paymentStatus: "Paid" });
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('bus_id', busId)
+        .eq('payment_status', 'Paid');
+
       const notifications = [];
 
-      for (const booking of bookings) {
-        if (booking.passengers && booking.passengers.length > 0) {
-          for (const passenger of booking.passengers) {
-            if (passenger.phone) {
-              notifications.push({
-                userId: booking.userId,
-                phone: passenger.phone,
-                busId,
-                ticketId: booking.ticketId,
-                title: notificationTitle,
-                message: notificationMessage,
-                status: "Unread",
-                createdAt: new Date()
-              });
+      if (bookings) {
+        for (const booking of bookings) {
+          if (booking.passengers && booking.passengers.length > 0) {
+            for (const passenger of booking.passengers) {
+              if (passenger.phone) {
+                notifications.push({
+                  user_id: booking.user_id,
+                  phone: passenger.phone,
+                  title: notificationTitle,
+                  message: notificationMessage,
+                  status: "Unread"
+                });
+              }
             }
           }
         }
       }
 
       if (notifications.length > 0) {
-        await TripNotification.insertMany(notifications);
-        notificationSent = true;
+         // Assuming a notifications table exists in Supabase
+         await supabase.from('notifications').insert(notifications);
+         notificationSent = true;
       }
     }
 
     return NextResponse.json({
       success: true,
       message: "Trip parameters and telemetry broadcasted successfully",
-      status: bus.status,
-      speed: bus.speed,
+      status: status || bus.status,
+      speed: speed || bus.speed,
       notificationSent
     });
-  } catch (error: any) {
-    console.error("Conductor telemetry broadcast failed:", error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+
+  } catch (error) {
+    console.error("Trip Update Error:", error);
+    return NextResponse.json({ success: false, message: "Server Error" }, { status: 500 });
   }
 }

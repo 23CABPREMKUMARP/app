@@ -1,9 +1,14 @@
+import { createClient } from '@supabase/supabase-js';
+
 export const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "https://your-project.supabase.co").replace(/\/$/, "");
 export const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "your-anon-key";
 
+// Create a single supabase client for interacting with your database
+export const supabase = createClient(supabaseUrl, supabaseKey);
+
 /**
- * Custom Supabase Fetch Client
- * Used to interact with Supabase REST API without requiring the heavy SDK.
+ * Custom Supabase Fetch Client (Deprecated in favor of full SDK client `supabase`)
+ * Used to interact with Supabase REST API directly for legacy routes.
  */
 export async function supabaseFetch(table: string, method: "GET" | "POST" | "PATCH" | "DELETE" = "GET", body?: any, query?: string) {
   const url = `${supabaseUrl}/rest/v1/${table}${query ? `?${query}` : ""}`;
@@ -14,7 +19,6 @@ export async function supabaseFetch(table: string, method: "GET" | "POST" | "PAT
     "Content-Type": "application/json"
   };
 
-  // Only use return=representation for mutation requests
   if (method !== "GET") {
     Object.assign(headers, { "Prefer": "return=representation" });
   }

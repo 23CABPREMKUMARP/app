@@ -1,46 +1,31 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/src/lib/db";
-import Bus from "@/src/models/Bus";
-import Route from "@/src/models/Route";
-import BusLocation from "@/src/models/BusLocation";
+import { supabase } from "@/src/lib/supabase";
 
 export async function GET() {
   try {
-    try {
-      await connectDB();
-    } catch (dbError) {
+    const { data: buses, error } = await supabase
+      .from('buses')
+      .select('*, routes(*, stops(*))');
+    
+    if (error || !buses) {
       console.warn("Matrix Hub Link Offline: Switching to Simulation Data Protocol.");
-      // Return simulation fleet if DB is disconnected
       return NextResponse.json([]); 
     }
 
-    const buses = await Bus.find().populate({
-      path: "routeId",
-      populate: {
-        path: "stops",
-        model: "Stop",
-      },
-    });
-    
-    // Get latest location for each bus
-    const busesWithLocation = await Promise.all(
-      buses.map(async (bus) => {
-        try {
-          const latestLocation = await BusLocation.findOne({ busId: bus._id }).sort({ timestamp: -1 });
-          return {
-            ...bus.toObject(),
-            location: latestLocation || { lat: 13.0827, lng: 80.2707 }, // Default to Chennai center
-          };
-        } catch (e) {
-          return { ...bus.toObject(), location: { lat: 13.0827, lng: 80.2707 } };
-        }
-      })
-    );
+    const formattedBuses = buses.map(bus => ({
+      ...bus,
+      _id: bus.id,
+      busNumber: bus.bus_number,
+      routeId: bus.routes,
+      departureTime: bus.departure_time,
+      arrivalTime: bus.arrival_time,
+      availableSeats: bus.available_seats,
+      location: bus.location || { lat: 13.0827, lng: 80.2707 } // Default to Chennai center
+    }));
 
-    return NextResponse.json(busesWithLocation);
+    return NextResponse.json(formattedBuses);
   } catch (error) {
     console.error("Critical Bus Sync Error:", error);
-    // Absolute fallback: Return empty so the frontend simulation can take over
     return NextResponse.json([]);
   }
 }
