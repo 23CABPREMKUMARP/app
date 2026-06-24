@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useUser, UserButton } from "@clerk/nextjs";
@@ -28,7 +28,7 @@ interface ConductorAssignment {
   created_at: string;
 }
 
-export default function EnterpriseAdminDashboard() {
+function EnterpriseAdminDashboardContent() {
   const { isLoaded, isSignedIn, user } = useUser();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -1548,5 +1548,20 @@ export default function EnterpriseAdminDashboard() {
       )}
 
     </div>
+  );
+}
+
+export default function EnterpriseAdminDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-xs uppercase tracking-widest font-black text-zinc-400">Loading Control Center...</p>
+        </div>
+      </div>
+    }>
+      <EnterpriseAdminDashboardContent />
+    </Suspense>
   );
 }
