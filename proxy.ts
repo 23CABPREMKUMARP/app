@@ -2,10 +2,24 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 // Public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
+  "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/phonepe(.*)",
   "/town-bus(.*)",
+  "/about",
+  "/privacy",
+  "/terms",
+  "/scan",
+  "/favicon.ico",
+  "/manifest.json",
+  "/manifest.webmanifest",
+  "/logo2.png",
+  "/hero-logo.png",
+  "/smart-bus.png",
+  "/bus-marker-3d.png",
+  "/videos/(.*)",
+  "/.well-known/(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
