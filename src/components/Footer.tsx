@@ -4,9 +4,15 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { Mail, Youtube, Facebook, ArrowUpRight, Phone, MapPin } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export const Footer = React.memo(function Footer() {
   const currentYear = new Date().getFullYear();
+  const pathname = usePathname();
+
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/conductor")) {
+    return null;
+  }
 
   return (
     <footer className="bg-zinc-950 text-white pt-24 pb-12 border-t border-white/10">

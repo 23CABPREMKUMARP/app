@@ -17,11 +17,12 @@ export default function ScanPage() {
   const handleScan = async (data: string) => {
     setShowScanner(false);
     
-    // Extract busId or busCode from QR code data
     let busId = "";
     let busCode = "";
     
-    if (data.includes("busId=")) {
+    if (data.includes("/bus/")) {
+      busCode = data.split("/bus/")[1].split("?")[0].trim();
+    } else if (data.includes("busId=")) {
       busId = data.split("busId=")[1].split("&")[0];
     } else if (data.startsWith("BUS:")) {
       busCode = data.replace("BUS:", "").trim();

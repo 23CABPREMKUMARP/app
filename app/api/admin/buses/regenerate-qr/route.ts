@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       newBusCode = `TNB${randomInt}`;
     }
 
-    const qrCodeUrl = `BUS:${newBusCode}`; // Direct deep link code
+    const qrCodeUrl = `https://app-woad-beta.vercel.app/bus/${newBusCode}`; // Direct deep link code
     
     const { data: updatedBus, error: updateError } = await supabase
       .from('buses')

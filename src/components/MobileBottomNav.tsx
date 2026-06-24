@@ -18,8 +18,13 @@ const navItems = [
 export function MobileBottomNav() {
   const pathname = usePathname();
 
-  // Don't show nav on auth pages
-  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+  // Don't show nav on auth, admin, or conductor pages
+  if (
+    pathname?.startsWith("/sign-in") || 
+    pathname?.startsWith("/sign-up") || 
+    pathname?.startsWith("/admin") || 
+    pathname?.startsWith("/conductor")
+  ) {
     return null;
   }
 
