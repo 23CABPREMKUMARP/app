@@ -18,7 +18,8 @@ export default function BusQRRedirectPage() {
       router.replace(`/sign-in?redirect_url=/bus/${busCode}`);
     } else {
       // If signed in, immediately navigate to the boarding (seat-selection) page
-      const tripId = `bus_${busCode.toLowerCase()}`;
+      const codeStr = Array.isArray(busCode) ? busCode[0] : busCode;
+      const tripId = `bus_${codeStr.toLowerCase()}`;
       router.replace(`/town-bus/${tripId}/seat-selection`);
     }
   }, [isLoaded, isSignedIn, busCode, router]);
