@@ -24,14 +24,14 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="app-woad-beta.vercel.app" />
+                <data android:scheme="https" android:host="jeffben.org" />
             </intent-filter>
             <!-- Also catch http just in case -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" android:host="app-woad-beta.vercel.app" />
+                <data android:scheme="http" android:host="jeffben.org" />
             </intent-filter>
             <!-- Custom URI scheme: jeffben://bus/CBE001 - NO server verification needed -->
             <!-- This ALWAYS opens the app when scanned, even without App Links working -->

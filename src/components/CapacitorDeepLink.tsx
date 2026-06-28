@@ -12,11 +12,27 @@ export function CapacitorDeepLink() {
     if (!Capacitor.isNativePlatform()) return;
 
     const listener = App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-      // url could be like "https://app-woad-beta.vercel.app/bus/TNB1024"
-      const slug = event.url.split(".app").pop();
-      if (slug) {
-        // e.g. slug = "/bus/TNB1024"
-        router.push(slug);
+      try {
+        const urlObj = new URL(event.url);
+        const path = urlObj.pathname;
+        const search = urlObj.search;
+
+        if (path.startsWith("/bus/") || path.startsWith("/boarding/")) {
+          const busCode = path.split("/").pop();
+          router.push(`/town-bus/bus_${busCode?.toLowerCase()}/seat-selection`);
+        } else if (path.startsWith("/track/")) {
+          const ticketId = path.split("/").pop();
+          router.push(`/live-map?ticketId=${ticketId}`);
+        } else if (path.startsWith("/ticket/")) {
+          const ticketId = path.split("/").pop();
+          router.push(`/get-ticket?ticketId=${ticketId}`);
+        } else if (path.startsWith("/profile")) {
+          router.push("/profile");
+        } else if (path !== "/") {
+          router.push(`${path}${search}`);
+        }
+      } catch (err) {
+        console.error("Deep link parse error:", err);
       }
     });
 

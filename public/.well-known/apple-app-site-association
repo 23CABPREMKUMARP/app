@@ -4,7 +4,7 @@
     "details": [
       {
         "appID": "YOUR_APPLE_TEAM_ID.com.jeffben.app",
-        "paths": ["/bus/*", "/track/*", "/booking/*", "/town-bus/*"]
+        "paths": ["/bus/*", "/track/*", "/ticket/*", "/boarding/*", "/profile"]
       }
     ]
   }

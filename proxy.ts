@@ -1,7 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 // Public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
+  "/", // Web landing page is fully public
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/webhooks(.*)",
@@ -19,12 +21,24 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
+  // Check if the request is coming from the installed Capacitor app
+  const userAgent = req.headers.get("user-agent") || "";
+  const isCapacitorApp = userAgent.includes("JeffBenMobileApp") || userAgent.includes("Capacitor");
+
+  // Enforce authentication for non-public routes OR if the mobile app is requesting its root dashboard
+  if (!isPublicRoute(req) || (isCapacitorApp && req.nextUrl.pathname === "/")) {
     const { userId, redirectToSignIn } = await auth();
     if (!userId) {
       return redirectToSignIn({ returnBackUrl: req.url });
     }
   }
+
+  // If it's the mobile app requesting the root domain, silently rewrite to /mobile-dashboard
+  if (isCapacitorApp && req.nextUrl.pathname === "/") {
+    return NextResponse.rewrite(new URL("/mobile-dashboard", req.url));
+  }
+
+  return NextResponse.next();
 });
 
 export const config = {
