@@ -18,6 +18,16 @@ const navItems = [
 export function MobileBottomNav() {
   const pathname = usePathname();
 
+  const [isNative, setIsNative] = React.useState(true); // Default to true to prevent nav popping out on mobile, we'll hide it if false
+
+  React.useEffect(() => {
+    import("@capacitor/core").then(({ Capacitor }) => {
+      setIsNative(Capacitor.isNativePlatform());
+    }).catch(() => {
+      setIsNative(false);
+    });
+  }, []);
+
   // Don't show nav on auth, admin, or conductor pages
   if (
     pathname?.startsWith("/sign-in") || 
@@ -25,6 +35,11 @@ export function MobileBottomNav() {
     pathname?.startsWith("/admin") || 
     pathname?.startsWith("/conductor")
   ) {
+    return null;
+  }
+
+  // Don't show nav on the public web landing page
+  if (pathname === "/" && !isNative) {
     return null;
   }
 
