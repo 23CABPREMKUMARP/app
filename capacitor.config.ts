@@ -15,14 +15,18 @@ const config: CapacitorConfig = {
       '*.clerk.com',
       '*.supabase.co',
       '*.razorpay.com',
-      '*.phonepe.com'
+      '*.phonepe.com',
+      'accounts.google.com',
+      '*.google.com',
+      '*.googleapis.com',
+      'jeffben.org',
+      '*.jeffben.org'
     ]
-
   },
   android: {
     allowMixedContent: false
   },
-  appendUserAgent: "JeffBenMobileApp",
+  overrideUserAgent: "Mozilla/5.0 (Linux; Android 13; SM-G991U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36 JeffBenMobileApp",
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,
