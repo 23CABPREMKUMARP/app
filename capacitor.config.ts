@@ -16,9 +16,6 @@ const config: CapacitorConfig = {
       '*.supabase.co',
       '*.razorpay.com',
       '*.phonepe.com',
-      'accounts.google.com',
-      '*.google.com',
-      '*.googleapis.com',
       'jeffben.org',
       '*.jeffben.org'
     ]
