@@ -2,13 +2,10 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 // Public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
-  "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/about",
-  "/privacy",
-  "/terms",
-  "/scan",
+  "/api/webhooks(.*)",
+  // Allow assets to load
   "/favicon.ico",
   "/manifest.json",
   "/manifest.webmanifest",
@@ -16,28 +13,9 @@ const isPublicRoute = createRouteMatcher([
   "/hero-logo.png",
   "/smart-bus.png",
   "/bus-marker-3d.png",
-  "/videos/(.*)",
   "/.well-known/(.*)",
-  // All town-bus passenger pages
-  "/town-bus(.*)",
-  "/live-map(.*)",
-  "/history(.*)",
-  "/get-ticket(.*)",
-  "/luggage-booking(.*)",
-  "/track/(.*)",
-  "/bus/(.*)",
-  // Public-facing API routes (read-only data, no auth needed)
-  "/api/buses(.*)",
-  "/api/town-bus/search(.*)",
-  "/api/town-bus/current-trip(.*)",
-  "/api/town-bus/active-trip(.*)",
-  "/api/buses/search(.*)",
-  "/api/luggage/track(.*)",
-  "/api/bookings/by-phone(.*)",
-  "/api/bookings/validate(.*)",
-  "/api/passenger/(.*)",
+  // Allow external callbacks like PhonePe if they exist
   "/api/phonepe(.*)",
-  "/api/conductor/(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
