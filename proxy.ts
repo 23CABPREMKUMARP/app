@@ -19,7 +19,8 @@ const isPublicRoute = createRouteMatcher([
   // Allow external callbacks like PhonePe if they exist
   "/api/phonepe(.*)",
   // The bus public info page is public
-  "/bus(.*)"
+  "/bus(.*)",
+  "/boarding(.*)"
 ]);
 
 // APP ONLY Routes
@@ -32,8 +33,7 @@ const appOnlyRoutes = createRouteMatcher([
   "/get-ticket(.*)",
   "/scan(.*)",
   "/luggage-booking(.*)",
-  "/track(.*)",
-  "/boarding(.*)"
+  "/track(.*)"
 ]);
 
 // WEB ONLY Routes
