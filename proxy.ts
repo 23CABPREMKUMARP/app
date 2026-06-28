@@ -18,12 +18,46 @@ const isPublicRoute = createRouteMatcher([
   "/.well-known/(.*)",
   // Allow external callbacks like PhonePe if they exist
   "/api/phonepe(.*)",
+  // The bus public info page is public
+  "/bus(.*)"
+]);
+
+// APP ONLY Routes
+const appOnlyRoutes = createRouteMatcher([
+  "/mobile-dashboard(.*)",
+  "/conductor(.*)",
+  "/town-bus(.*)",
+  "/live-map(.*)",
+  "/history(.*)",
+  "/get-ticket(.*)",
+  "/scan(.*)",
+  "/luggage-booking(.*)",
+  "/track(.*)",
+  "/boarding(.*)"
+]);
+
+// WEB ONLY Routes
+const webOnlyRoutes = createRouteMatcher([
+  "/about(.*)",
+  "/privacy(.*)",
+  "/terms(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
   // Check if the request is coming from the installed Capacitor app
   const userAgent = req.headers.get("user-agent") || "";
   const isCapacitorApp = userAgent.includes("JeffBenMobileApp") || userAgent.includes("Capacitor");
+
+  // STRICT SEPARATION ENFORCEMENT
+  if (!isCapacitorApp && appOnlyRoutes(req)) {
+    // Browser trying to access App route -> redirect to web home
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+  
+  if (isCapacitorApp && webOnlyRoutes(req)) {
+    // App trying to access Web route -> redirect to mobile dashboard
+    return NextResponse.redirect(new URL("/mobile-dashboard", req.url));
+  }
 
   // Enforce authentication for non-public routes OR if the mobile app is requesting its root dashboard
   if (!isPublicRoute(req) || (isCapacitorApp && req.nextUrl.pathname === "/")) {
