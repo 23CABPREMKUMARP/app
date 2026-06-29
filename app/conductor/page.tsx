@@ -1005,18 +1005,39 @@ export default function EnterpriseConductorPortal() {
                             </div>
                           )}
 
-                          {scanResult.booking?.passengers && scanResult.booking.passengers.length > 0 && scanResult.booking.destination === "Multi-Stop" && (
+                          {scanResult.booking?.passengers && scanResult.booking.passengers.length > 0 && (scanResult.booking.boarding_point === "Combined Journey" || scanResult.booking.boardingPoint === "Combined Journey") ? (
                             <div className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-4 mt-2">
-                              <h4 className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider mb-3">Passenger Destinations</h4>
-                              <div className="space-y-2">
+                              <h4 className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider mb-3">Journey Segments</h4>
+                              <div className="space-y-3">
                                 {scanResult.booking.passengers.map((p: any, idx: number) => (
-                                  <div key={idx} className="flex justify-between items-center text-xs">
-                                    <span className="text-zinc-300 font-medium">Passenger {idx + 1} {p.luggage && p.luggage !== 'None' ? `(${p.luggage})` : ''}</span>
-                                    <span className="text-orange-500 font-bold uppercase truncate max-w-[100px]">{p.destination || "Unknown"}</span>
+                                  <div key={idx} className="text-xs bg-zinc-900 border border-zinc-800 rounded-lg p-3">
+                                    <div className="flex justify-between items-center mb-2">
+                                      <span className="text-zinc-300 font-medium">Journey {idx + 1} {p.luggage && p.luggage !== 'None' ? `(+${p.luggage})` : ''}</span>
+                                      <span className="text-orange-500 font-bold">₹{p.fare || 20}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+                                      <span>{p.boarding || "Unknown"}</span>
+                                      <span className="text-zinc-700">→</span>
+                                      <span>{p.destination || "Unknown"}</span>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
                             </div>
+                          ) : (
+                            scanResult.booking?.passengers && scanResult.booking.passengers.length > 0 && scanResult.booking.destination === "Multi-Stop" && (
+                              <div className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-4 mt-2">
+                                <h4 className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider mb-3">Passenger Destinations</h4>
+                                <div className="space-y-2">
+                                  {scanResult.booking.passengers.map((p: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between items-center text-xs">
+                                      <span className="text-zinc-300 font-medium">Passenger {idx + 1} {p.luggage && p.luggage !== 'None' ? `(${p.luggage})` : ''}</span>
+                                      <span className="text-orange-500 font-bold uppercase truncate max-w-[100px]">{p.destination || "Unknown"}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )
                           )}
 
                           <button 

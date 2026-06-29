@@ -267,18 +267,39 @@ export default function GetTicketPage() {
                             </div>
                           </div>
 
-                          {booking.passengers && booking.passengers.length > 0 && booking.destination === "Multi-Stop" && (
+                          {booking.passengers && booking.passengers.length > 0 && booking.boardingPoint === "Combined Journey" ? (
                             <div className="border-b border-[#5d4037]/20 pb-3">
-                              <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60 block mb-2">Destinations</span>
-                              <div className="space-y-1">
+                              <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60 block mb-2">Journey Segments</span>
+                              <div className="space-y-2">
                                 {booking.passengers.map((p: any, idx: number) => (
-                                  <div key={idx} className="flex justify-between items-center text-xs">
-                                    <span className="font-bold text-[#5d4037]/80">Passenger {idx + 1} {p.luggage && p.luggage !== 'None' ? `(${p.luggage})` : ''}</span>
-                                    <span className="font-serif font-bold uppercase truncate max-w-[100px] text-[#5d4037]">{p.destination || "Unknown"}</span>
+                                  <div key={idx} className="text-xs bg-[#5d4037]/5 p-2 rounded-lg border border-[#5d4037]/10">
+                                    <div className="flex justify-between mb-1">
+                                      <span className="font-bold text-[#5d4037]/80">Journey {idx + 1} {p.luggage && p.luggage !== 'None' ? `(+${p.luggage})` : ''}</span>
+                                      <span className="font-black text-[#5d4037]">₹{p.fare || 20}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[10px] text-[#5d4037]/70 font-bold uppercase">
+                                      <span className="truncate max-w-[80px]">{p.boarding || "Unknown"}</span>
+                                      <span>→</span>
+                                      <span className="truncate max-w-[80px]">{p.destination || "Unknown"}</span>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
                             </div>
+                          ) : (
+                            booking.passengers && booking.passengers.length > 0 && booking.destination === "Multi-Stop" && (
+                              <div className="border-b border-[#5d4037]/20 pb-3">
+                                <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60 block mb-2">Destinations</span>
+                                <div className="space-y-1">
+                                  {booking.passengers.map((p: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between items-center text-xs">
+                                      <span className="font-bold text-[#5d4037]/80">Passenger {idx + 1} {p.luggage && p.luggage !== 'None' ? `(${p.luggage})` : ''}</span>
+                                      <span className="font-serif font-bold uppercase truncate max-w-[100px] text-[#5d4037]">{p.destination || "Unknown"}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )
                           )}
 
                           <div className="flex items-center justify-between text-[#5d4037]/75">
