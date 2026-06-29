@@ -988,19 +988,33 @@ export default function EnterpriseConductorPortal() {
                             <div className="w-full grid grid-cols-2 gap-4 pt-6 border-t border-zinc-800 text-left text-xs">
                               <div className="space-y-1">
                                 <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Ticket ID</span>
-                                <p className="font-mono font-bold text-zinc-200">{scanResult.booking.ticketId}</p>
+                                <p className="font-mono font-bold text-zinc-200">{scanResult.booking.ticketId || scanResult.booking.ticket_id}</p>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Seat Number</span>
-                                <p className="font-bold text-zinc-200">{scanResult.booking.seat || "S12"}</p>
+                                <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Passengers</span>
+                                <p className="font-bold text-zinc-200">{scanResult.booking.seats?.length || 1} {scanResult.booking.passengers?.some((p: any) => p.luggage && p.luggage !== 'None') && "(+ Luggage)"}</p>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Boarding Point</span>
-                                <p className="font-bold text-zinc-200 truncate">{scanResult.booking.boardingPoint || "Gandhipuram"}</p>
+                                <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Boarding</span>
+                                <p className="font-bold text-zinc-200 truncate">{scanResult.booking.boarding_point || scanResult.booking.boardingPoint}</p>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Route</span>
-                                <p className="font-bold text-zinc-200 truncate">{scanResult.booking.route || "City Terminal EXP"}</p>
+                                <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Destination</span>
+                                <p className="font-bold text-zinc-200 truncate">{scanResult.booking.destination}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {scanResult.booking?.passengers && scanResult.booking.passengers.length > 0 && scanResult.booking.destination === "Multi-Stop" && (
+                            <div className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-4 mt-2">
+                              <h4 className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider mb-3">Passenger Destinations</h4>
+                              <div className="space-y-2">
+                                {scanResult.booking.passengers.map((p: any, idx: number) => (
+                                  <div key={idx} className="flex justify-between items-center text-xs">
+                                    <span className="text-zinc-300 font-medium">Passenger {idx + 1} {p.luggage && p.luggage !== 'None' ? `(${p.luggage})` : ''}</span>
+                                    <span className="text-orange-500 font-bold uppercase truncate max-w-[100px]">{p.destination || "Unknown"}</span>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}

@@ -342,7 +342,12 @@ export default function HistoryPage() {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60">Passengers:</span>
-                          <span className="text-lg font-serif font-black tracking-tight">{selectedBooking.seats?.length || 1}</span>
+                          <span className="text-lg font-serif font-black tracking-tight">
+                            {selectedBooking.seats?.length || 1}
+                            {selectedBooking.passengers?.some((p: any) => p.luggage && p.luggage !== 'None')
+                              ? <span className="text-xs uppercase tracking-widest text-[#5d4037]/70 ml-1">(+ Luggage)</span>
+                              : null}
+                          </span>
                         </div>
                       </div>
 
@@ -356,6 +361,20 @@ export default function HistoryPage() {
                           <p className="text-sm font-serif font-bold uppercase truncate max-w-[120px]">{selectedBooking.destination || "Point B"}</p>
                         </div>
                       </div>
+
+                      {selectedBooking.passengers && selectedBooking.passengers.length > 0 && selectedBooking.destination === "Multi-Stop" && (
+                        <div className="border-b border-[#5d4037]/20 pb-3">
+                          <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60 block mb-2">Destinations</span>
+                          <div className="space-y-1">
+                            {selectedBooking.passengers.map((p: any, idx: number) => (
+                              <div key={idx} className="flex justify-between items-center text-xs">
+                                <span className="font-bold text-[#5d4037]/80">Passenger {idx + 1} {p.luggage && p.luggage !== 'None' ? `(${p.luggage})` : ''}</span>
+                                <span className="font-serif font-bold uppercase truncate max-w-[100px] text-[#5d4037]">{p.destination || "Unknown"}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="flex items-center justify-between text-[#5d4037]/75">
                         <div className="flex flex-col">
