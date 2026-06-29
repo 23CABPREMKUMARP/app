@@ -26,7 +26,6 @@ export default function TicketCountSelectionPage() {
   const stops = trip?.routeId?.stops || [];
 
   const [boardingPoint, setBoardingPoint] = useState('');
-  const [dropPoint, setDropPoint] = useState('');
   const [expandedQR, setExpandedQR] = useState(false);
   
   const [ticketCount, setTicketCount] = useState(1);
@@ -35,8 +34,8 @@ export default function TicketCountSelectionPage() {
   const [step, setStep] = useState(1);
   const [paymentState, setPaymentState] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
   const [bookingResult, setBookingResult] = useState<any>(null);
-  const [passengers, setPassengers] = useState<Array<{ name: string, phone: string, luggage: string }>>([
-    { name: '', phone: '', luggage: 'None' }
+  const [passengers, setPassengers] = useState<Array<{ phone: string, luggage: string, destination: string }>>([
+    { phone: '', luggage: 'None', destination: '' }
   ]);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -76,7 +75,6 @@ export default function TicketCountSelectionPage() {
             setBoardingPoint(parsed.boardingPoint);
             hasLoadedBookingState = true;
           }
-          if (parsed.dropPoint) setDropPoint(parsed.dropPoint);
         } catch(e) {}
       }
     }
@@ -104,13 +102,13 @@ export default function TicketCountSelectionPage() {
           };
 
           const matchedBoarding = findBestMatch(fromLoc, stops);
-          const matchedDrop = findBestMatch(toLoc, stops);
-          
           if (matchedBoarding) {
             setBoardingPoint(matchedBoarding.stopName);
           }
+          
+          const matchedDrop = findBestMatch(toLoc, stops);
           if (matchedDrop) {
-            setDropPoint(matchedDrop.stopName);
+            setPassengers([{ phone: '', luggage: 'None', destination: matchedDrop.stopName }]);
           }
         } catch (e) {}
       }
@@ -127,8 +125,7 @@ export default function TicketCountSelectionPage() {
         try { return JSON.parse(localStorage.getItem('townBusBookingState') || '{}'); } catch { return {}; }
       })();
       const freshBoarding = freshState.boardingPoint || '';
-      const freshDrop = freshState.dropPoint || '';
-      const freshPassengers = freshState.passengers || [{ name: '', phone: '', luggage: 'None' }];
+      const freshPassengers = freshState.passengers || [{ phone: '', luggage: 'None', destination: '' }];
       const freshCount = freshState.ticketCount || 1;
       const freshBusNumber = freshState.busNumber || '';
       const pollStatus = async () => {
@@ -146,7 +143,7 @@ export default function TicketCountSelectionPage() {
               status: b.status || 'Confirmed',
               totalAmount: b.total_amount || totalAmount,
               boardingPoint: b.boarding_point || freshBoarding || 'Boarding Point',
-              destination: b.destination || freshDrop || 'Destination',
+              destination: b.destination || (freshPassengers.length > 1 ? 'Multi-Stop' : freshPassengers[0]?.destination) || 'Destination',
               luggageType: b.luggage_type || b.passengers?.[0]?.luggage || freshPassengers[0]?.luggage || 'None',
               passengers: b.passengers || freshPassengers,
               busNumber: freshBusNumber,
@@ -172,7 +169,7 @@ export default function TicketCountSelectionPage() {
                 status: 'Confirmed',
                 totalAmount: totalAmount,
                 boardingPoint: freshBoarding || 'Boarding Point',
-                destination: freshDrop || 'Destination',
+                destination: (freshPassengers.length > 1 ? 'Multi-Stop' : freshPassengers[0]?.destination) || 'Destination',
                 luggageType: freshPassengers[0]?.luggage || 'None',
                 busNumber: freshBusNumber,
                 seats: Array.from({ length: freshCount }, (_, i) => `S-${i + 1}`),
@@ -193,7 +190,7 @@ export default function TicketCountSelectionPage() {
               status: 'Confirmed',
               totalAmount: totalAmount,
               boardingPoint: freshBoarding || 'Boarding Point',
-              destination: freshDrop || 'Destination',
+              destination: (freshPassengers.length > 1 ? 'Multi-Stop' : freshPassengers[0]?.destination) || 'Destination',
               luggageType: freshPassengers[0]?.luggage || 'None',
               busNumber: freshBusNumber,
               seats: Array.from({ length: freshCount }, (_, i) => `S-${i + 1}`),
@@ -213,8 +210,7 @@ export default function TicketCountSelectionPage() {
         try { return JSON.parse(localStorage.getItem('townBusBookingState') || '{}'); } catch { return {}; }
       })();
       const freshBoarding = freshState.boardingPoint || '';
-      const freshDrop = freshState.dropPoint || '';
-      const freshPassengers = freshState.passengers || [{ name: '', phone: '', luggage: 'None' }];
+      const freshPassengers = freshState.passengers || [{ phone: '', luggage: 'None', destination: '' }];
       const freshCount = freshState.ticketCount || 1;
       const freshBusNumber = freshState.busNumber || '';
       const getBookingDetails = async () => {
@@ -229,7 +225,7 @@ export default function TicketCountSelectionPage() {
               status: b.status || 'Confirmed',
               totalAmount: b.total_amount || totalAmount,
               boardingPoint: b.boarding_point || freshBoarding || 'Boarding Point',
-              destination: b.destination || freshDrop || 'Destination',
+              destination: b.destination || (freshPassengers.length > 1 ? 'Multi-Stop' : freshPassengers[0]?.destination) || 'Destination',
               luggageType: b.luggage_type || b.passengers?.[0]?.luggage || freshPassengers[0]?.luggage || 'None',
               passengers: b.passengers || freshPassengers,
               busNumber: freshBusNumber,
@@ -244,7 +240,7 @@ export default function TicketCountSelectionPage() {
               status: 'Confirmed',
               totalAmount: totalAmount,
               boardingPoint: freshBoarding || 'Boarding Point',
-              destination: freshDrop || 'Destination',
+              destination: (freshPassengers.length > 1 ? 'Multi-Stop' : freshPassengers[0]?.destination) || 'Destination',
               luggageType: freshPassengers[0]?.luggage || 'None',
               busNumber: freshBusNumber,
               seats: Array.from({ length: freshCount }, (_, i) => `S-${i + 1}`),
@@ -259,7 +255,7 @@ export default function TicketCountSelectionPage() {
             status: 'Confirmed',
             totalAmount: totalAmount,
             boardingPoint: freshBoarding || 'Boarding Point',
-            destination: freshDrop || 'Destination',
+            destination: (freshPassengers.length > 1 ? 'Multi-Stop' : freshPassengers[0]?.destination) || 'Destination',
             luggageType: freshPassengers[0]?.luggage || 'None',
             busNumber: freshBusNumber,
             seats: Array.from({ length: freshCount }, (_, i) => `S-${i + 1}`),
@@ -291,7 +287,7 @@ export default function TicketCountSelectionPage() {
   const handleIncrement = () => {
     if (ticketCount < 10) {
       setTicketCount(prev => prev + 1);
-      setPassengers(prev => [...prev, { name: '', phone: prev[0]?.phone || '', luggage: 'None' }]);
+      setPassengers(prev => [...prev, { phone: prev[0]?.phone || '', luggage: 'None', destination: prev[0]?.destination || '' }]);
     }
   };
 
@@ -316,7 +312,6 @@ export default function TicketCountSelectionPage() {
         ticketCount,
         passengers,
         boardingPoint,
-        dropPoint,
         busNumber: trip?.busNumber || trip?.busCode || ''
       }));
     }
@@ -331,12 +326,12 @@ export default function TicketCountSelectionPage() {
           seats: Array.from({ length: ticketCount }, (_, i) => `S-${i + 1}`),
           totalAmount: totalAmount,
           boardingPoint: boardingPoint,
-          destination: dropPoint,
+          destination: passengers.length > 1 ? 'Multi-Stop' : passengers[0]?.destination || '',
           busNumber: trip?.busNumber || trip?.busCode || '',
           passengers: passengers.map(p => ({
-            name: p.name || "Passenger",
             phone: p.phone || "9999999999",
-            luggage: p.luggage
+            luggage: p.luggage,
+            destination: p.destination || ''
           })),
         })
       });
@@ -396,7 +391,7 @@ export default function TicketCountSelectionPage() {
           </div>
           <div className="flex flex-col gap-1 text-right">
             <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.3em]">Destination</span>
-            <span className="text-sm font-black text-white uppercase truncate max-w-[120px]">{dropPoint || "Choose End"}</span>
+            <span className="text-sm font-black text-white uppercase truncate max-w-[120px]">{passengers.length > 1 ? "Multi-Stop" : (passengers[0]?.destination || "Choose End")}</span>
           </div>
         </div>
 
@@ -460,29 +455,14 @@ export default function TicketCountSelectionPage() {
                         className="w-full h-16 bg-zinc-50 border border-zinc-100 rounded-[24px] px-6 font-bold text-zinc-900 outline-none focus:ring-2 ring-[#FF9933]/20 transition-all cursor-pointer relative z-50"
                       >
                         <option value="">Choose Station</option>
-                        {stops
-                          .filter((s: any) => s.stopName !== dropPoint)
-                          .map((s: any) => <option key={s._id} value={s.stopName}>{s.stopName}</option>)}
-                      </select>
-                  </div>
-                  <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pl-2">Drop Destination</label>
-                      <select 
-                        value={dropPoint} 
-                        onChange={(e) => setDropPoint(e.target.value)} 
-                        className="w-full h-16 bg-zinc-50 border border-zinc-100 rounded-[24px] px-6 font-bold text-zinc-900 outline-none focus:ring-2 ring-[#FF9933]/20 transition-all cursor-pointer relative z-50"
-                      >
-                        <option value="">Choose Destination</option>
-                        {stops
-                          .filter((s: any) => s.stopName !== boardingPoint)
-                          .map((s: any) => <option key={s._id} value={s.stopName}>{s.stopName}</option>)}
+                        {stops.map((s: any) => <option key={s._id} value={s.stopName}>{s.stopName}</option>)}
                       </select>
                   </div>
                 </div>
 
                 <button 
                   onClick={() => setStep(2)}
-                  disabled={!boardingPoint || !dropPoint}
+                  disabled={!boardingPoint}
                   className="w-full h-20 bg-[#FF9933] text-white rounded-[32px] font-black text-xl tracking-tighter hover:bg-orange-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-8 active:scale-95 shadow-lg shadow-[#FF9933]/20"
                 >
                   Select Passengers <ChevronRight size={24} />
@@ -537,20 +517,23 @@ export default function TicketCountSelectionPage() {
                       Passenger {index + 1}
                     </div>
                     
-                    {/* Name */}
+                    {/* Destination */}
                     <div className="mb-4 mt-2">
-                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pl-1 mb-1 block">Full Name (Optional)</label>
-                      <input 
-                        type="text"
-                        value={passenger.name}
+                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pl-1 mb-1 block">Drop Destination</label>
+                      <select 
+                        value={passenger.destination} 
                         onChange={(e) => {
                           const newP = [...passengers];
-                          newP[index].name = e.target.value;
+                          newP[index].destination = e.target.value;
                           setPassengers(newP);
-                        }}
-                        placeholder="Enter name"
-                        className="w-full h-12 bg-white border border-zinc-200 rounded-xl px-4 font-bold text-sm text-zinc-900 outline-none focus:border-[#FF9933] transition-all"
-                      />
+                        }} 
+                        className="w-full h-12 bg-white border border-zinc-200 rounded-xl px-4 font-bold text-sm text-zinc-900 outline-none focus:border-[#FF9933] transition-all cursor-pointer"
+                      >
+                        <option value="">Choose Destination</option>
+                        {stops
+                          .filter((s: any) => s.stopName !== boardingPoint)
+                          .map((s: any) => <option key={s._id} value={s.stopName}>{s.stopName}</option>)}
+                      </select>
                     </div>
 
                     {/* Phone */}
@@ -787,7 +770,7 @@ export default function TicketCountSelectionPage() {
                               </div>
                               <div className="flex flex-col">
                                 <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60">Destination</span>
-                                <p className="text-sm font-serif font-bold uppercase truncate max-w-[120px]">{bookingResult.destination || dropPoint || 'Point B'}</p>
+                                <p className="text-sm font-serif font-bold uppercase truncate max-w-[120px]">{bookingResult.destination || (passengers.length > 1 ? "Multi-Stop" : passengers[0]?.destination) || 'Point B'}</p>
                               </div>
                             </div>
 
@@ -986,7 +969,7 @@ export default function TicketCountSelectionPage() {
 
       {/* Bottom Action Bar (Only for Step 2) */}
       <AnimatePresence>
-        {step === 2 && passengers.every(p => p.phone?.length >= 10) && (
+        {step === 2 && passengers.every(p => p.phone?.length >= 10 && p.destination) && (
           <motion.div 
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
