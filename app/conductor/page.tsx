@@ -995,12 +995,20 @@ export default function EnterpriseConductorPortal() {
                                 <p className="font-bold text-zinc-200">{scanResult.booking.seats?.length || 1} {scanResult.booking.passengers?.some((p: any) => p.luggage && p.luggage !== 'None') && "(+ Luggage)"}</p>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Boarding</span>
-                                <p className="font-bold text-zinc-200 truncate">{scanResult.booking.boarding_point || scanResult.booking.boardingPoint}</p>
+                                <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Boarding Points</span>
+                                <p className="text-xs font-bold text-zinc-200 leading-tight pr-2">
+                                  {(scanResult.booking.boarding_point === "Combined Journey" || scanResult.booking.boardingPoint === "Combined Journey") && scanResult.booking.passengers 
+                                    ? scanResult.booking.passengers.map((p: any) => p.boarding).join(' • ') 
+                                    : (scanResult.booking.boarding_point || scanResult.booking.boardingPoint || "Unknown")}
+                                </p>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Destination</span>
-                                <p className="font-bold text-zinc-200 truncate">{scanResult.booking.destination}</p>
+                                <span className="text-[9px] font-bold uppercase text-zinc-500 tracking-wider">Drop Points</span>
+                                <p className="text-xs font-bold text-zinc-200 leading-tight pr-2">
+                                  {scanResult.booking.destination === "Multi-Stop" && scanResult.booking.passengers 
+                                    ? scanResult.booking.passengers.map((p: any) => p.destination).join(' • ') 
+                                    : (scanResult.booking.destination || "Unknown")}
+                                </p>
                               </div>
                             </div>
                           )}

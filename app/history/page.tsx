@@ -353,12 +353,20 @@ export default function HistoryPage() {
 
                       <div className="grid grid-cols-2 gap-4 border-b border-[#5d4037]/20 pb-3">
                         <div className="flex flex-col">
-                          <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60">Boarding</span>
-                          <p className="text-sm font-serif font-bold uppercase truncate max-w-[120px]">{selectedBooking.boardingPoint || "Point A"}</p>
+                          <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60 mb-1">Boarding Points</span>
+                          <p className="text-xs font-serif font-bold uppercase leading-tight pr-2">
+                            {selectedBooking.boardingPoint === "Combined Journey" && selectedBooking.passengers 
+                              ? selectedBooking.passengers.map((p: any) => p.boarding).join(' • ') 
+                              : (selectedBooking.boardingPoint || "Point A")}
+                          </p>
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60">Destination</span>
-                          <p className="text-sm font-serif font-bold uppercase truncate max-w-[120px]">{selectedBooking.destination || "Point B"}</p>
+                          <span className="font-sans font-bold uppercase text-[9px] tracking-[0.2em] text-[#5d4037]/60 mb-1">Drop Points</span>
+                          <p className="text-xs font-serif font-bold uppercase leading-tight pr-2">
+                            {selectedBooking.destination === "Multi-Stop" && selectedBooking.passengers 
+                              ? selectedBooking.passengers.map((p: any) => p.destination).join(' • ') 
+                              : (selectedBooking.destination || "Point B")}
+                          </p>
                         </div>
                       </div>
 
