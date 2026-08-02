@@ -80,8 +80,8 @@ function LiveMapContent() {
       
       // 2. Check Route
       if (bus.routeId && (bus.routeId.routeName || "").toLowerCase().includes(q)) {
-        if (!results.find(r => r.type === 'route' && r.title === bus.routeId.routeName)) {
-          results.push({ type: 'route', title: bus.routeId.routeName, subtitle: `Route`, lat: bus.location?.lat, lng: bus.location?.lng, bus });
+        if (!results.find(r => r.type === 'route' && r.title === bus.routeId?.routeName)) {
+          results.push({ type: 'route', title: bus.routeId?.routeName || "Unknown Route", subtitle: `Route`, lat: bus.location?.lat, lng: bus.location?.lng, bus });
         }
       }
       
